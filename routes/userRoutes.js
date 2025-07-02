@@ -1,6 +1,8 @@
 const express = require("express");
 const userController = require("./../controllers/userController");
 const authController = require("./../controllers/authController");
+const userTaskController = require("../controllers/userTaskController");
+const userProjectController = require("../controllers/userProjectController");
 
 const router = express.Router();
 
@@ -239,6 +241,44 @@ router.patch(
  *         description: User deleted successfully
  */
 router.delete("/deleteMe", userController.deleteMe);
+
+/**
+ * @swagger
+ * /users/{id}/tasks:
+ *   get:
+ *     summary: Get all tasks assigned to a user by user ID
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: List of tasks assigned to the user
+ */
+router.get("/:id/tasks", userTaskController.getTasksByUser);
+
+/**
+ * @swagger
+ * /users/{id}/projects:
+ *   get:
+ *     summary: Get all projects for a user by user ID
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: List of projects for the user
+ */
+router.get("/:id/projects", userProjectController.getProjectsByUser);
 
 // Admin only routes
 router.use(authController.restrictTo("admin"));

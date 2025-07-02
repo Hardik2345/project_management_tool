@@ -39,14 +39,13 @@ exports.signup = catchAsync(async (req, res, next) => {
     email: req.body.email,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
-    riotTag: req.body.riotTag,
-    riotUsername: req.body.riotUsername,
   });
   const url = `${req.protocol}://${req.get("host")}/me`;
-  req.login(newUser, (err) => {
+  req.login(newUser, async (err) => {
     if (err) {
       return next(err);
     }
+    await new Email(newUser, url).sendWelcome();
     createSendToken(newUser, 201, req, res);
   });
 });
@@ -138,6 +137,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save({ validateBeforeSave: false });
+    console.log(err);
     return next(
       new AppError("There was an error sending the email. Try again later!"),
       500
@@ -181,45 +181,53 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, req, res);
 });
 
-exports.googleAuth = passport.authenticate("google", { session: false, scope: ['profile', 'email'] });
+exports.googleAuth = passport.authenticate("google", {
+  session: false,
+  scope: ["profile", "email"],
+});
 
 exports.googleCallback = (req, res, next) => {
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
   try {
-    passport.authenticate("google", { session: false }, async (err, user, info) => {
-      console.log("entered passport.authenticate for Google");
-      try {
-        if (err) {
-          console.error("Google auth error:", err);
-          return res.redirect(
-            `${frontendUrl}/login?error=google_auth_failed`
+    passport.authenticate(
+      "google",
+      { session: false },
+      async (err, user, info) => {
+        console.log("entered passport.authenticate for Google");
+        try {
+          if (err) {
+            console.error("Google auth error:", err);
+            return res.redirect(
+              `${frontendUrl}/login?error=google_auth_failed`
+            );
+          }
+          if (!user) {
+            console.error("No user returned from Google auth", info);
+            return res.redirect(
+              `${frontendUrl}/login?error=google_auth_failed`
+            );
+          }
+          const token = signToken(user._id);
+          res.cookie("jwt", token, {
+            expires: new Date(
+              Date.now() +
+                process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+            ),
+            httpOnly: true,
+            secure: false,
+            sameSite: "Lax",
+          });
+          console.log(
+            `Google authentication successful for user: ${user.name}`
           );
+          console.log(`Redirecting to: ${frontendUrl}/dashboard`);
+          return res.redirect(`${frontendUrl}/dashboard`);
+        } catch (error) {
+          console.error("Error in Google callback:", error);
+          return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
         }
-        if (!user) {
-          console.error("No user returned from Google auth", info);
-          return res.redirect(
-            `${frontendUrl}/login?error=google_auth_failed`
-          );
-        }
-        const token = signToken(user._id);
-        res.cookie("jwt", token, {
-          expires: new Date(
-            Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-          ),
-          httpOnly: true,
-          secure: false,
-          sameSite: "Lax",
-        });
-        console.log(`Google authentication successful for user: ${user.name}`);
-        console.log(`Redirecting to: ${frontendUrl}/dashboard`);
-        return res.redirect(`${frontendUrl}/dashboard`);
-      } catch (error) {
-        console.error("Error in Google callback:", error);
-        return res.redirect(
-          `${frontendUrl}/login?error=google_auth_failed`
-        );
       }
-    })(req, res, next);
+    )(req, res, next);
   } catch (error) {
     console.error("Error in passport.authenticate:", error);
     res.status(500).send("Internal Server Error");

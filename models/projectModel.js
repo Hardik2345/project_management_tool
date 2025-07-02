@@ -1,9 +1,9 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const projectSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Project must have a name'],
+    required: [true, "Project must have a name"],
     trim: true,
   },
   description: {
@@ -12,17 +12,21 @@ const projectSchema = new mongoose.Schema({
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: "User",
     required: true,
   },
-  members: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-  }],
-  tasks: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Task',
-  }],
+  members: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
+  tasks: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Task",
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,
@@ -36,44 +40,36 @@ const projectSchema = new mongoose.Schema({
   },
   priority: {
     type: String,
-    enum: ['low', 'medium', 'high','critical'],
-    default: 'medium',
+    enum: ["low", "medium", "high", "critical"],
+    default: "medium",
   },
   status: {
     type: String,
-    enum: ['Not Started', 'In Progress', 'Completed', 'On Hold', 'Cancelled'],
-    default: 'Not Started',
+    enum: ["Not Started", "In Progress", "Completed", "On Hold", "Cancelled"],
+    default: "Not Started",
   },
   client: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Client',
+    ref: "Client",
     required: true,
   },
   monthlyHours: {
     type: Number,
     required: true,
     min: 0,
-  }
+  },
+  tags: [
+    {
+      type: String,
+      trim: true,
+      unique: true,
+    },
+  ],
 });
 
-// Auto-populate tasks (with assignedTo user details) on find queries
-function autoPopulateProject(next) {
-  this.populate({
-    path: 'client',
-    select: 'name',
-  });
-  this.populate({
-    path: 'tasks',
-    populate: {
-      path: 'assignedTo',
-      select: 'name email',
-    }
-  });
-  next();
-}
-projectSchema.pre('find', autoPopulateProject);
-projectSchema.pre('findOne', autoPopulateProject);
-projectSchema.pre('findById', autoPopulateProject);
+projectSchema.index({ createdBy: 1 });
+projectSchema.index({ members: 1 });
+projectSchema.index({ client: 1 });
 
-const Project = mongoose.model('Project', projectSchema);
+const Project = mongoose.model("Project", projectSchema);
 module.exports = Project;

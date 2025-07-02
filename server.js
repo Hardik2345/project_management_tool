@@ -1,5 +1,5 @@
+require("dotenv").config();
 const mongoose = require("mongoose");
-const dotenv = require("dotenv");
 const http = require("http");
 
 process.on("uncaughtException", (err) => {
@@ -8,7 +8,6 @@ process.on("uncaughtException", (err) => {
   process.exit(1);
 });
 
-dotenv.config({ path: "./config.env" });
 const app = require("./app");
 const server = http.createServer(app);
 

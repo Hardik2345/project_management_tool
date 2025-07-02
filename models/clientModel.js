@@ -1,9 +1,9 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const clientSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Client must have a name'],
+    required: [true, "Client must have a name"],
     trim: true,
   },
   email: {
@@ -26,8 +26,10 @@ const clientSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now,
-  }
+  },
 });
 
-const Client = mongoose.model('Client', clientSchema);
+clientSchema.index({ name: 1 });
+
+const Client = mongoose.model("Client", clientSchema);
 module.exports = Client;
