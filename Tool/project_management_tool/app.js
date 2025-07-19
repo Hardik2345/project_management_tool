@@ -76,26 +76,40 @@ const sessionStore = MongoStore.create({
   touchAfter: 24 * 3600, // 24 hours
 });
 
-app.use((req, res, next) => {
-  if (req.originalUrl.startsWith("/api/v1/users/auth/google")) {
-    console.log("Bypassing session for Google routes");
-    return next();
-  }
-  session({
-    secret: process.env.SESSION_SECRET || "your-session-secret",
-    resave: false,
-    saveUninitialized: false,
-    store: sessionStore,
-    cookie: {
-      secure: false,
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
-    },
-  })(req, res, next);
-});
+// const sessionMiddleware = session({
+//   secret: process.env.SESSION_SECRET || "your-session-secret",
+//   resave: false,
+//   saveUninitialized: false,
+//   store: sessionStore,
+//   cookie: {
+//     secure: false,
+//     httpOnly: true,
+//     maxAge: 24 * 60 * 60 * 1000,
+//   },
+// });
 
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(sessionMiddleware);
+
+// app.use((req, res, next) => {
+//   if (req.originalUrl.startsWith("/api/v1/users/auth/google")) {
+//     console.log("Bypassing session for Google routes");
+//     return next();
+//   }
+//   session({
+//     secret: process.env.SESSION_SECRET || "your-session-secret",
+//     resave: false,
+//     saveUninitialized: false,
+//     store: sessionStore,
+//     cookie: {
+//       secure: false,
+//       httpOnly: true,
+//       maxAge: 24 * 60 * 60 * 1000,
+//     },
+//   })(req, res, next);
+// });
+
+// app.use(passport.initialize());
+// app.use(passport.session());
 // Health check endpoint for root path
 app.get("/", (req, res) => {
   res.status(200).send("API is running");
