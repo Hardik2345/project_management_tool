@@ -65,51 +65,51 @@ app.use(cookieParser());
 
 app.use(compression());
 
-// const mongoUrl = process.env.DATABASE.replace(
-//   "<PASSWORD>",
-//   process.env.DATABASE_PASSWORD
-// );
+const mongoUrl = process.env.DATABASE.replace(
+  "<PASSWORD>",
+  process.env.DATABASE_PASSWORD
+);
 
-// const sessionStore = MongoStore.create({
-//   mongoUrl: mongoUrl,
-//   collectionName: "sessions", // It's good practice to name the collection
-//   touchAfter: 24 * 3600, // 24 hours
-// });
+const sessionStore = MongoStore.create({
+  mongoUrl: mongoUrl,
+  collectionName: "sessions", // It's good practice to name the collection
+  touchAfter: 24 * 3600, // 24 hours
+});
 
-// const sessionMiddleware = session({
-//   secret: process.env.SESSION_SECRET || "your-session-secret",
-//   resave: false,
-//   saveUninitialized: false,
-//   store: sessionStore,
-//   cookie: {
-//     secure: false,
-//     httpOnly: true,
-//     maxAge: 24 * 60 * 60 * 1000,
-//   },
-// });
+const sessionMiddleware = session({
+  secret: process.env.SESSION_SECRET || "your-session-secret",
+  resave: false,
+  saveUninitialized: false,
+  store: sessionStore,
+  cookie: {
+    secure: false,
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000,
+  },
+});
 
-// app.use(sessionMiddleware);
+app.use(sessionMiddleware);
 
-// app.use((req, res, next) => {
-//   if (req.originalUrl.startsWith("/api/v1/users/auth/google")) {
-//     console.log("Bypassing session for Google routes");
-//     return next();
-//   }
-//   session({
-//     secret: process.env.SESSION_SECRET || "your-session-secret",
-//     resave: false,
-//     saveUninitialized: false,
-//     store: sessionStore,
-//     cookie: {
-//       secure: false,
-//       httpOnly: true,
-//       maxAge: 24 * 60 * 60 * 1000,
-//     },
-//   })(req, res, next);
-// });
+app.use((req, res, next) => {
+  if (req.originalUrl.startsWith("/api/v1/users/auth/google")) {
+    console.log("Bypassing session for Google routes");
+    return next();
+  }
+  session({
+    secret: process.env.SESSION_SECRET || "your-session-secret",
+    resave: false,
+    saveUninitialized: false,
+    store: sessionStore,
+    cookie: {
+      secure: false,
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+    },
+  })(req, res, next);
+});
 
-// app.use(passport.initialize());
-// app.use(passport.session());
+app.use(passport.initialize());
+app.use(passport.session());
 // Health check endpoint for root path
 app.get("/", (req, res) => {
   res.status(200).send("API is running");
