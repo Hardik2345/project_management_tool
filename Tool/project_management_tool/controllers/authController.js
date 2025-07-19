@@ -81,9 +81,12 @@ exports.logout = (req, res) => {
     if (err) {
       return res.status(500).json({ status: "error", message: err.message });
     }
+    // Clear JWT cookie for cross-site clients
     res.cookie("jwt", "loggedout", {
       expires: new Date(Date.now() + 10 * 1000),
       httpOnly: true,
+      secure: true, // must match login cookie secure flag
+      sameSite: "None", // must match login cookie sameSite setting
     });
     res.status(200).json({ status: "success" });
   });
