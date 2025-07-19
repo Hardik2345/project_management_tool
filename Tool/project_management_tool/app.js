@@ -30,6 +30,7 @@ app.use(
       "http://localhost:5173",
       "https://accounts.google.com",
       "https://project-management-tool-peach.vercel.app",
+      "https://project-management-t-git-bbeb2d-raghav-kumars-projects-e04ee19e.vercel.app",
     ],
     credentials: true,
   })
