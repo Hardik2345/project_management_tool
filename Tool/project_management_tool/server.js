@@ -15,16 +15,16 @@ const server = http.createServer(app);
 // Initialize Swagger documentation
 setupSwagger(app);
 
-// Ensure DATABASE and DATABASE_PASSWORD env vars are set
+// Warn if DATABASE env vars are missing, but continue so server can bind a port
 if (!process.env.DATABASE) {
-  console.error("Error: DATABASE environment variable is not defined.");
-  process.exit(1);
+  console.warn(
+    "Warning: DATABASE environment variable is not defined. DB connection will fail."
+  );
 }
 if (!process.env.DATABASE_PASSWORD) {
-  console.error(
-    "Error: DATABASE_PASSWORD environment variable is not defined."
+  console.warn(
+    "Warning: DATABASE_PASSWORD environment variable is not defined. DB connection will fail."
   );
-  process.exit(1);
 }
 const DB = process.env.DATABASE.replace(
   "<PASSWORD>",
