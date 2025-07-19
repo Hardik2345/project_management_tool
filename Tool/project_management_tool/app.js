@@ -97,8 +97,8 @@ app.use((req, res, next) => {
 app.use(passport.initialize());
 app.use(passport.session());
 // Health check endpoint for root path
-app.get('/', (req, res) => {
-  res.status(200).send('API is running');
+app.get("/", (req, res) => {
+  res.status(200).send("API is running");
 });
 
 app.use("/api/v1/users", userRouter);

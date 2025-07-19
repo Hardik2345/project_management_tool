@@ -1,7 +1,8 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 
-// API Base URL - this should be configured in your environment
-const API_BASE_URL = "https://project-management-tool-2ws0.onrender.com/api/v1";
+// API Base URL - override via VITE_API_BASE_URL in .env for production
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api/v1";
 
 // Create axios instance with default configuration
 export const api: AxiosInstance = axios.create({
