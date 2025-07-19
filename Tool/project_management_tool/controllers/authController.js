@@ -92,7 +92,36 @@ exports.logout = (req, res) => {
   });
 };
 
-exports.protect = passport.authenticate("jwt", { session: false });
+exports.protect = catchAsync(async (req, res, next) => {
+  let token;
+  // Get token from cookie
+  if (req.cookies.jwt && req.cookies.jwt !== "loggedout") {
+    token = req.cookies.jwt;
+  }
+  if (!token) {
+    return next(
+      new AppError("You are not logged in! Please log in to get access.", 401)
+    );
+  }
+  // Verify token
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  // Check if user still exists
+  const currentUser = await User.findById(decoded.id);
+  if (!currentUser) {
+    return next(
+      new AppError("The user belonging to this token no longer exists.", 401)
+    );
+  }
+  // Check if user changed password after token was issued
+  if (currentUser.changedPasswordAfter(decoded.iat)) {
+    return next(
+      new AppError("User recently changed password. Please log in again.", 401)
+    );
+  }
+  // Grant access
+  req.user = currentUser;
+  next();
+});
 
 exports.isLoggedIn = async (req, res, next) => {
   if (req.cookies.jwt && req.cookies.jwt !== "loggedout") {
