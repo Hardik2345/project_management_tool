@@ -48,7 +48,7 @@ export function Tasks() {
     dueDate: "",
     tags: [] as string[],
   });
-  const [tasks, setTasks] = useState<ApiTask[]>([]);
+  const [allTasks, setAllTasks] = useState<ApiTask[]>([]);
   const [users, setUsers] = useState<ApiUser[]>([]);
   const [projects, setProjects] = useState<ApiProject[]>([]);
 
@@ -56,15 +56,15 @@ export function Tasks() {
     const fetchTasksAndMeta = async () => {
       try {
         if (!user || !user._id) return;
-        const [apiTasks, usersRes, apiProjects] = await Promise.all([
-          TaskService.getTasksByUser(user._id),
+        const [tasksRes, usersRes, apiProjects] = await Promise.all([
+          TaskService.getAllTasks(),
           UserService.getAllUsers(),
           ProjectService.getAllProjects(),
         ]);
         console.log("Fetched Users:", usersRes);
-        console.log(apiTasks);
-        // Use the returned array of tasks directly
-        setTasks(apiTasks.filter(Boolean));
+        console.log(tasksRes);
+        // Store all tasks
+        setAllTasks(tasksRes.tasks || []);
         // Extract users from response
         const allUsers = usersRes.data?.data || [];
         setUsers(allUsers.filter(Boolean));
@@ -99,7 +99,15 @@ export function Tasks() {
     );
   }
 
-  const filteredTasks = tasks.filter(isValidTask).filter((task) => {
+  // Determine base tasks: if no filters/search, limit to current user; otherwise all tasks
+  const baseTasks =
+    searchTerm === "" &&
+    statusFilter === "all" &&
+    assigneeFilter === "all" &&
+    projectFilter === "all"
+      ? allTasks.filter((t) => t.assignedTo === user?._id)
+      : allTasks;
+  const filteredTasks = baseTasks.filter(isValidTask).filter((task) => {
     const matchesSearch =
       task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ??
@@ -132,7 +140,7 @@ export function Tasks() {
       };
       const res = await TaskService.createTask(payload);
       console.log("Created task:", res);
-      if (res.data?.data) setTasks((prev) => [...prev, res.data?.data]);
+      if (res.data?.data) setAllTasks((prev) => [...prev, res.data?.data]);
       setShowCreateModal(false);
       setNewTask({
         title: "",
@@ -156,7 +164,7 @@ export function Tasks() {
     newStatus: ApiTask["status"]
   ) => {
     // Optimistically update UI
-    setTasks((prev) =>
+    setAllTasks((prev) =>
       prev.map((t) => (t._id === taskId ? { ...t, status: newStatus } : t))
     );
     try {
@@ -804,7 +812,7 @@ export function Tasks() {
         }}
         taskId={selectedTaskId}
         onDelete={(deletedId: string) => {
-          setTasks((prev) => prev.filter((task) => task._id !== deletedId));
+          setAllTasks((prev) => prev.filter((task) => task._id !== deletedId));
         }}
       />
     </div>
