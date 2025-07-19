@@ -24,14 +24,14 @@ app.enable("trust proxy", 1);
 app.set("view engine", "pug");
 app.set("views", path.join(__dirname, "views"));
 
+// Configure CORS with frontend origin from env
+const allowedOrigins = [
+  process.env.FRONTEND_URL || "http://localhost:5173",
+  "https://accounts.google.com",
+].filter(Boolean);
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://accounts.google.com",
-      "https://project-management-tool-peach.vercel.app",
-      "https://project-management-t-git-bbeb2d-raghav-kumars-projects-e04ee19e.vercel.app",
-    ],
+    origin: allowedOrigins,
     credentials: true,
   })
 );
