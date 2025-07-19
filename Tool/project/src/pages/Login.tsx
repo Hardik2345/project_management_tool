@@ -71,7 +71,7 @@ export default function Login() {
             className="w-full"
             onClick={() => {
               window.location.href =
-                "http://localhost:3000/api/v1/users/auth/google";
+                "https://project-management-tool-2ws0.onrender.com/api/v1/users/auth/google";
             }}
           >
             Sign in with Google
