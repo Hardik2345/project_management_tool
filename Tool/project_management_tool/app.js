@@ -89,25 +89,32 @@ const sessionMiddleware = session({
   },
 });
 
-app.use(sessionMiddleware);
-
 app.use((req, res, next) => {
-  if (req.originalUrl.startsWith("/api/v1/users/auth/google")) {
-    console.log("Bypassing session for Google routes");
-    return next();
+  // Check if the route is the one to be skipped
+  if (!req.originalUrl.startsWith("/api/v1/users/auth/google")) {
+    return next(); // Skip session middleware
   }
-  session({
-    secret: process.env.SESSION_SECRET || "your-session-secret",
-    resave: false,
-    saveUninitialized: false,
-    store: sessionStore,
-    cookie: {
-      secure: false,
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
-    },
-  })(req, res, next);
+  // For all other routes, use the SAME middleware instance
+  return sessionMiddleware(req, res, next);
 });
+
+// app.use((req, res, next) => {
+//   if (req.originalUrl.startsWith("/api/v1/users/auth/google")) {
+//     console.log("Bypassing session for Google routes");
+//     return next();
+//   }
+//   session({
+//     secret: process.env.SESSION_SECRET || "your-session-secret",
+//     resave: false,
+//     saveUninitialized: false,
+//     store: sessionStore,
+//     cookie: {
+//       secure: false,
+//       httpOnly: true,
+//       maxAge: 24 * 60 * 60 * 1000,
+//     },
+//   })(req, res, next);
+// });
 
 app.use(passport.initialize());
 app.use(passport.session());
