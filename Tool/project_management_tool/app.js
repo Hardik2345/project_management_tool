@@ -26,7 +26,11 @@ app.set("views", path.join(__dirname, "views"));
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://accounts.google.com"],
+    origin: [
+      "http://localhost:5173",
+      "https://accounts.google.com",
+      "https://project-management-tool-peach.vercel.app",
+    ],
     credentials: true,
   })
 );
