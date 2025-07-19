@@ -14,32 +14,13 @@ export const api: AxiosInstance = axios.create({
   withCredentials: true,
 });
 
-// Token management
-let authToken: string | null = null;
+// Auth handled entirely via sameSite=none secure cookie; no client token storage
+// Stubbed: accept token parameter for compatibility but do nothing (cookie-only auth)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const setAuthToken = (_token?: string | null): void => {};
+export const getAuthToken = (): null => null;
 
-export const setAuthToken = (token: string | null) => {
-  authToken = token;
-  if (token) {
-    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  } else {
-    delete api.defaults.headers.common["Authorization"];
-  }
-};
-
-export const getAuthToken = () => authToken;
-
-// Request interceptor to add auth token
-api.interceptors.request.use(
-  (config) => {
-    if (authToken) {
-      config.headers.Authorization = `Bearer ${authToken}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+// No request interceptor needed; cookie auth sends JWT automatically
 
 // Response interceptor for error handling
 api.interceptors.response.use(
