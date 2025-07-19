@@ -85,6 +85,7 @@ const sessionMiddleware = session({
     secure: false,
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
+    sameSite: "None", // allow cross-site cookies
   },
 });
 
