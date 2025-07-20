@@ -321,7 +321,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const tasksRes = await TaskService.getAllTasks();
         console.log("Fetched tasks:", tasksRes);
         // ApiResponse.data contains { tasks: ApiTask[] }
-        const apiTasks = tasksRes.data.tasks || [];
+        const apiTasks = tasksRes.data.data || [];
         const tasks = apiTasks.map((t) => ({
           id: t._id || "",
           title: t.title,
