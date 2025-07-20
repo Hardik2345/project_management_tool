@@ -5,7 +5,7 @@ const handlerFactory = require("./handlerFactory");
 
 // Start timer (set startTime)
 exports.startTimer = catchAsync(async (req, res, next) => {
-  const { userId, projectId, taskId } = req.body;
+  const { userId, projectId, taskId, description } = req.body;
   if (!userId || !projectId || !taskId) {
     return next(
       new AppError("userId, projectId, and taskId are required", 400)
@@ -23,6 +23,7 @@ exports.startTimer = catchAsync(async (req, res, next) => {
       project: projectId,
       task: taskId,
       startTime: new Date(),
+      description: description || "Timer session",
     });
   } else {
     timer.startTime = new Date();
