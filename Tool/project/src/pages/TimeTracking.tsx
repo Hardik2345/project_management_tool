@@ -633,7 +633,7 @@ export function TimeTracking() {
                     >
                       <option value="">Select project...</option>
                       {state.projects.map((project) => (
-                        <option key={project._id} value={project._id}>
+                        <option key={project.id} value={project.id}>
                           {project.name}
                         </option>
                       ))}
