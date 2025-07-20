@@ -2,17 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { useApp } from "../../contexts/AppContext";
 import TaskService from "../../services/taskService";
 import { ApiTask } from "../../types";
-import {
-  X,
-  Tag,
-  Trash2,
-  Save,
-  Plus,
-  CheckCircle,
-  AlertTriangle,
-} from "lucide-react";
+import { X, Trash2, Save, CheckCircle, AlertTriangle } from "lucide-react";
 import { Button } from "../ui/Button";
-import { Badge } from "../ui/Badge";
+// removed Badge import as tags section is removed
 import { format } from "date-fns";
 
 interface TaskModalProps {
@@ -32,7 +24,7 @@ export function TaskModal({
   const [loading, setLoading] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [newTag, setNewTag] = useState("");
+  // removed newTag state
   const modalRef = useRef<HTMLDivElement>(null);
 
   const task = taskId ? state.tasks.find((t) => t.id === taskId) : null;
@@ -124,19 +116,9 @@ export function TaskModal({
     setHasChanges(true);
   };
 
-  const handleAddTag = () => {
-    if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
-      handleInputChange("tags", [...formData.tags, newTag.trim()]);
-      setNewTag("");
-    }
-  };
+  // removed handleAddTag
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    handleInputChange(
-      "tags",
-      formData.tags.filter((tag) => tag !== tagToRemove)
-    );
-  };
+  // removed handleRemoveTag
 
   const handleSave = async () => {
     if (!task) return;
@@ -485,99 +467,8 @@ export function TaskModal({
                   </div>
                 </div>
 
-                {/* Progress Bar */}
-                <div>
-                  <div className="flex justify-between text-sm text-gray-600 mb-2">
-                    <span>Time Progress</span>
-                    <span>
-                      {Math.round(
-                        (loggedHours / formData.estimated_hours) * 100
-                      )}
-                      %
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className={`h-2 rounded-full transition-all duration-300 ${
-                        loggedHours > formData.estimated_hours
-                          ? "bg-red-500"
-                          : loggedHours > formData.estimated_hours * 0.8
-                          ? "bg-yellow-500"
-                          : "bg-green-500"
-                      }`}
-                      style={{
-                        width: `${Math.min(
-                          (loggedHours / formData.estimated_hours) * 100,
-                          100
-                        )}%`,
-                      }}
-                    />
-                  </div>
-                </div>
 
-                {/* Tags */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tags
-                  </label>
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap gap-2">
-                      {formData.tags.map((tag, index) => (
-                        <Badge
-                          key={index}
-                          variant="secondary"
-                          className="flex items-center space-x-1 px-3 py-1"
-                        >
-                          <Tag className="w-3 h-3" />
-                          <span>{tag}</span>
-                          <button
-                            onClick={() => handleRemoveTag(tag)}
-                            className="ml-1 text-gray-400 hover:text-gray-600"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
 
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="text"
-                        value={newTag}
-                        onChange={(e) => setNewTag(e.target.value)}
-                        onKeyPress={(e) => e.key === "Enter" && handleAddTag()}
-                        placeholder="Add a tag"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                      />
-                      <Button
-                        onClick={handleAddTag}
-                        disabled={!newTag.trim()}
-                        size="sm"
-                        icon={Plus}
-                      >
-                        Add
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Task Info */}
-                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                  <h4 className="text-sm font-medium text-gray-900">
-                    Task Information
-                  </h4>
-                  <div className="space-y-1 text-sm text-gray-600">
-                    <div>
-                      Created:{" "}
-                      {format(new Date(task.created_at), "MMM d, yyyy")}
-                    </div>
-                    <div>
-                      Updated:{" "}
-                      {format(new Date(task.updated_at), "MMM d, yyyy")}
-                    </div>
-                    <div>Time entries: {timeEntries.length}</div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
