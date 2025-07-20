@@ -463,7 +463,7 @@ export function TimeTracking() {
   };
 
   const filteredTimeEntries = getFilteredTimeEntries();
-  // console.log("real filteredTimeEntries", filteredTimeEntries);
+  console.log("real filteredTimeEntries", filteredTimeEntries);
   const totalHours =
     filteredTimeEntries.reduce((sum, te) => sum + te.duration, 0) / 60;
 
