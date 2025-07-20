@@ -547,8 +547,18 @@ export function TimeTracking() {
         <div className="flex items-center space-x-3">
           <div className="flex rounded-lg border border-gray-300">
             <button
-              onClick={() => setDateFilter("today")}
+              onClick={() => setDateFilter("all")}
               className={`px-3 py-2 text-sm font-medium transition-colors ${
+                dateFilter === "all"
+                  ? "bg-blue-50 text-blue-700 border-blue-200"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setDateFilter("today")}
+              className={`px-3 py-2 text-sm font-medium transition-colors border-l border-gray-300 ${
                 dateFilter === "today"
                   ? "bg-blue-50 text-blue-700 border-blue-200"
                   : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
