@@ -99,32 +99,54 @@ export function Projects() {
     };
   }, [activeDropdown]);
 
-  // Load projects via context on user change
+  // Load projects via context on user change (only if we don't have projects loaded)
   useEffect(() => {
-    if (user) {
+    if (user && state.projects.length === 0) {
       reloadTasksAndMeta();
     }
-  }, [user, reloadTasksAndMeta]);
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fetch owners and clients for dynamic select fields
+  // Fetch owners and clients for dynamic select fields (only if not already loaded)
   useEffect(() => {
-    async function fetchOwnersClients() {
-      try {
-        const usersRes = await UserService.getAllUsers();
-        // Fix: use usersRes.data?.data if the array of users is at data.data, or usersRes.data?.users if at data.users. Add a fallback to support both. This will ensure the dropdown is populated regardless of which property is present.
-        const allUsers = usersRes.data?.data || usersRes.data?.users || [];
-        setOwners(allUsers); // all users for owner selection
-        const clientsRes = await ClientService.getAllClients();
-        // Try both possible shapes for clients array
-        const allClients =
-          clientsRes.data?.data || clientsRes.data?.clients || [];
-        setClients(allClients);
-      } catch (err) {
-        console.error("Failed to fetch owners or clients", err);
-      }
+    // If we already have data in global state, use it
+    if (state.profiles.length > 0) {
+      setOwners(state.profiles.filter(p => p.role !== "client").map(p => ({
+        _id: p.id,
+        name: p.name,
+        email: p.email,
+        role: p.role === "project_manager" ? "manager" : p.role === "team_member" ? "team member" : p.role as "admin" | "manager" | "team member"
+      })));
     }
-    fetchOwnersClients();
-  }, []);
+    if (state.clients.length > 0) {
+      setClients(state.clients.map(c => ({
+        _id: c.id,
+        name: c.name,
+        email: c.email,
+        company: c.company
+      })));
+    }
+    
+    // Only fetch if global state is empty
+    if (state.profiles.length === 0 || state.clients.length === 0) {
+      async function fetchOwnersClients() {
+        try {
+          if (state.profiles.length === 0) {
+            const usersRes = await UserService.getAllUsers();
+            const allUsers = usersRes.data?.data || usersRes.data?.users || [];
+            setOwners((allUsers as ApiUser[]).filter((u) => u.role !== "client"));
+          }
+          if (state.clients.length === 0) {
+            const clientsRes = await ClientService.getAllClients();
+            const allClients = clientsRes.data?.data || clientsRes.data?.clients || [];
+            setClients(allClients as ApiClient[]);
+          }
+        } catch (err) {
+          console.error("Failed to fetch owners or clients", err);
+        }
+      }
+      fetchOwnersClients();
+    }
+  }, [state.profiles, state.clients]);
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
