@@ -63,8 +63,25 @@ export function Tasks() {
         ]);
         console.log("Fetched Users:", usersRes);
         console.log(tasksRes.data?.data);
-        // Store all tasks
-        setAllTasks(tasksRes.data?.data || []);
+        // Store all tasks and update context so TaskModal can access any task
+        const tasksArray = tasksRes.data?.data || [];
+        setAllTasks(tasksArray);
+        // Map API tasks to context Task shape
+        const contextTasks = (tasksArray as ApiTask[]).map((t) => ({
+          id: t._id || "",
+          title: t.title,
+          description: t.description || "",
+          project_id: typeof t.project === "object" ? t.project._id : (t.project as string),
+          assignee_id: typeof t.assignedTo === "object" ? t.assignedTo._id : (t.assignedTo as string),
+          priority: t.priority,
+          status: t.status,
+          estimated_hours: t.estimatedHours || 0,
+          due_date: t.dueDate || "",
+          created_at: (t as any).createdAt || "",
+          updated_at: (t as any).updatedAt || "",
+          subtasks: [] as any[],
+        }));
+        dispatch({ type: "SET_TASKS", payload: contextTasks });
         // Extract users from response
         const allUsers = usersRes.data?.data || [];
         setUsers(allUsers.filter(Boolean));
@@ -184,6 +201,33 @@ export function Tasks() {
       target.closest("a")
     ) {
       return;
+    }
+    // Add selected task to global context so TaskModal can access it
+    const clicked = allTasks.find((t) => t._id === taskId);
+    if (clicked) {
+      dispatch({
+        type: "ADD_TASK",
+        payload: {
+          id: clicked._id!,
+          title: clicked.title,
+          description: clicked.description || "",
+          status: clicked.status,
+          priority: clicked.priority,
+          project_id:
+            typeof clicked.project === "object"
+              ? clicked.project._id
+              : clicked.project,
+          assignee_id:
+            typeof clicked.assignedTo === "object"
+              ? clicked.assignedTo._id
+              : clicked.assignedTo,
+          estimated_hours: clicked.estimatedHours || 0,
+          due_date: clicked.dueDate || "",
+          created_at: clicked.createdAt || "",
+          updated_at: clicked.updatedAt || "",
+          subtasks: [],
+        },
+      });
     }
     setSelectedTaskId(taskId);
     setShowTaskModal(true);
