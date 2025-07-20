@@ -67,34 +67,40 @@ export function Tasks() {
         const tasksArray = tasksRes.data?.data || [];
         setAllTasks(tasksArray);
         // Map API tasks to context Task shape
-        const contextTasks = (tasksArray as ApiTask[]).map((t) => ({
+        const apiTasks = tasksRes.data?.tasks || [];
+        setAllTasks(apiTasks);
+        // Update global context tasks so TaskModal can access any task by id
+        const contextTasks = apiTasks.map((t) => ({
           id: t._id || "",
           title: t.title,
           description: t.description || "",
-          project_id: typeof t.project === "object" ? t.project._id : (t.project as string),
-          assignee_id: typeof t.assignedTo === "object" ? t.assignedTo._id : (t.assignedTo as string),
+          project_id:
+            typeof t.project === "object"
+              ? (t.project as any)._id
+              : (t.project as string),
+          assignee_id:
+            typeof t.assignedTo === "object"
+              ? (t.assignedTo as any)._id
+              : (t.assignedTo as string),
           priority: t.priority,
           status: t.status,
           estimated_hours: t.estimatedHours || 0,
           due_date: t.dueDate || "",
-          created_at: (t as any).createdAt || "",
-          updated_at: (t as any).updatedAt || "",
-          subtasks: [] as any[],
+          created_at: t.createdAt || "",
+          updated_at: t.updatedAt || "",
+          assignee: undefined,
+          project: undefined,
+          subtasks: [] as never[],
         }));
         dispatch({ type: "SET_TASKS", payload: contextTasks });
-        // Extract users from response
-        const allUsers = usersRes.data?.data || [];
-        setUsers(allUsers.filter(Boolean));
-        // Use the returned projects array directly
-        setProjects(apiProjects.filter(Boolean));
       } catch (error) {
-        console.error("Failed to fetch tasks, users, or projects:", error);
+        console.error("Error fetching tasks or meta:", error);
       }
     };
-    fetchTasksAndMeta();
-  }, [user]);
 
-  // Type guard for valid tasks
+    fetchTasksAndMeta();
+  }, [user, dispatch]);
+
   function isValidTask(task: unknown): task is ApiTask {
     return (
       typeof task === "object" &&
@@ -192,7 +198,7 @@ export function Tasks() {
     }
   };
 
-  const handleTaskClick = (taskId: string, event: React.MouseEvent) => {
+  const handleTaskClick = async (taskId: string, event: React.MouseEvent) => {
     // Prevent opening modal if clicking on interactive elements
     const target = event.target as HTMLElement;
     if (
@@ -202,32 +208,39 @@ export function Tasks() {
     ) {
       return;
     }
-    // Add selected task to global context so TaskModal can access it
-    const clicked = allTasks.find((t) => t._id === taskId);
-    if (clicked) {
-      dispatch({
-        type: "ADD_TASK",
-        payload: {
-          id: clicked._id!,
-          title: clicked.title,
-          description: clicked.description || "",
-          status: clicked.status,
-          priority: clicked.priority,
-          project_id:
-            typeof clicked.project === "object"
-              ? clicked.project._id
-              : clicked.project,
-          assignee_id:
-            typeof clicked.assignedTo === "object"
-              ? clicked.assignedTo._id
-              : clicked.assignedTo,
-          estimated_hours: clicked.estimatedHours || 0,
-          due_date: clicked.dueDate || "",
-          created_at: clicked.createdAt || "",
-          updated_at: clicked.updatedAt || "",
-          subtasks: [],
-        },
-      });
+    // If context does not have this task, fetch it and add to context
+    if (!state.tasks.find((t) => t.id === taskId)) {
+      try {
+        const res = await TaskService.getTaskById(taskId);
+        const apiTask =
+          // try nested data
+          (res.data as any)?.data?.task || (res.data as any)?.task;
+        if (apiTask) {
+          const mappedTask = {
+            id: apiTask._id || "",
+            title: apiTask.title,
+            description: apiTask.description || "",
+            project_id:
+              typeof apiTask.project === "object"
+                ? (apiTask.project as any)._id
+                : (apiTask.project as string),
+            assignee_id:
+              typeof apiTask.assignedTo === "object"
+                ? (apiTask.assignedTo as any)._id
+                : (apiTask.assignedTo as string),
+            priority: apiTask.priority,
+            status: apiTask.status,
+            estimated_hours: apiTask.estimatedHours || 0,
+            due_date: apiTask.dueDate || "",
+            created_at: (apiTask as any).createdAt || "",
+            updated_at: (apiTask as any).updatedAt || "",
+            subtasks: [] as any[],
+          };
+          dispatch({ type: "ADD_TASK", payload: mappedTask });
+        }
+      } catch (err) {
+        console.error("Failed to fetch task:", err);
+      }
     }
     setSelectedTaskId(taskId);
     setShowTaskModal(true);

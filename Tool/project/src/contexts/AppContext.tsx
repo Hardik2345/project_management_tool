@@ -316,20 +316,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }));
       }
       dispatch({ type: "SET_PROJECTS", payload: projects });
-      // Fetch tasks for the current user from backend
-      if (user && user._id) {
-        const apiTasks = await TaskService.getTasksForUser(user._id);
-        // Map API tasks to context Task shape
-        const tasks = apiTasks.map((t: any) => ({
-          id: t._id || t.id || "",
+      // Fetch all tasks from backend so TaskModal can show tasks for any assignee
+      try {
+        const tasksRes = await TaskService.getAllTasks();
+        // ApiResponse.data contains { tasks: ApiTask[] }
+        const apiTasks = tasksRes.data.tasks || [];
+        const tasks = apiTasks.map((t) => ({
+          id: t._id || "",
           title: t.title,
           description: t.description || "",
           project_id:
-            typeof t.project === "string" ? t.project : t.project?._id || "",
+            typeof t.project === "string"
+              ? t.project
+              : (t.project as any)?._id || "",
           assignee_id:
             typeof t.assignedTo === "string"
               ? t.assignedTo
-              : t.assignedTo?._id || "",
+              : (t.assignedTo as any)?._id || "",
           priority: t.priority,
           status: t.status,
           estimated_hours: t.estimatedHours || 0,
@@ -341,7 +344,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           subtasks: [],
         }));
         dispatch({ type: "SET_TASKS", payload: tasks });
-      } else {
+      } catch {
         dispatch({ type: "SET_TASKS", payload: [] });
       }
       // Optionally fetch invoices and notifications from backend if needed

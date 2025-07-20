@@ -21,9 +21,7 @@ import { format } from "date-fns";
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  taskId?: string | null;
-  /** Task object passed from parent for direct context use */
-  contextTask?: import("../../types").Task; // use context Task shape
+  taskId: string | null;
   onDelete?: (id: string) => void;
 }
 
