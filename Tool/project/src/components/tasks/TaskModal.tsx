@@ -466,9 +466,6 @@ export function TaskModal({
                     </div>
                   </div>
                 </div>
-
-
-
               </div>
             </div>
           </div>

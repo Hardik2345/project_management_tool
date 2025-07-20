@@ -58,7 +58,23 @@ export function Projects() {
     owner_id: "", // add owner_id for owner selection
   });
 
-  const [projects, setProjects] = useState<ApiProject[]>([]);
+  // Adapt context projects to ApiProject shape
+  const allProjects = state.projects.map((p) => ({
+    _id: p.id,
+    name: p.name,
+    description: p.description,
+    createdBy: p.owner_id,
+    tasks: p.tags, // if tasks field needed
+    createdAt: p.created_at,
+    updatedAt: p.updated_at,
+    deadline: p.deadline,
+    priority: p.priority,
+    status: p.status,
+    client: p.client_id || "",
+    owner: p.owner_id,
+    monthlyHours: p.monthly_hour_allocation,
+    tags: p.tags || [],
+  })) as ApiProject[];
   const [clients, setClients] = useState<ApiClient[]>([]);
   const [owners, setOwners] = useState<ApiUser[]>([]);
 
@@ -87,14 +103,29 @@ export function Projects() {
       if (!user || !user._id) return;
       try {
         const res = await ProjectService.getAllProjects();
-        console.log("Fetched projects:", res);
-        setProjects(res || []);
+        const items = res.data?.data || [];
+        // Map ApiProject to context Project shape and dispatch
+        const ctxProjects = items.map((c) => ({
+          id: c._id || "",
+          name: c.name,
+          description: c.description || "",
+          client_id: c.client,
+          owner_id: c.owner,
+          priority: c.priority,
+          status: c.status,
+          deadline: c.deadline,
+          monthly_hour_allocation: c.monthlyHours || 0,
+          tags: c.tags || [],
+          created_at: c.createdAt || "",
+          updated_at: c.updatedAt || "",
+        }));
+        dispatch({ type: "SET_PROJECTS", payload: ctxProjects });
       } catch (error) {
         console.error("Failed to fetch projects:", error);
       }
     };
     fetchProjects();
-  }, [user]);
+  }, [user, dispatch]);
 
   // Fetch owners and clients for dynamic select fields
   useEffect(() => {
@@ -118,48 +149,75 @@ export function Projects() {
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
+    // Prepare payload for API
+    const payload: Partial<ApiProject> & {
+      client?: string;
+      monthlyHours?: number;
+      tags?: string[];
+      owner?: string;
+    } = {
+      name: newProject.name,
+      description: newProject.description,
+      createdBy: user._id!,
+      deadline: newProject.deadline,
+      priority: newProject.priority as ApiProject["priority"],
+      status:
+        newProject.status === "not_started"
+          ? "Not Started"
+          : newProject.status === "in_progress"
+          ? "In Progress"
+          : newProject.status === "on_hold"
+          ? "On Hold"
+          : newProject.status === "completed"
+          ? "Completed"
+          : newProject.status === "cancelled"
+          ? "Cancelled"
+          : newProject.status === "retainer"
+          ? "Retainer"
+          : "Not Started",
+      client: newProject.client_id || undefined,
+      owner: newProject.owner_id || undefined,
+      monthlyHours: newProject.monthly_hour_allocation || undefined,
+      tags: newProject.tags.length > 0 ? newProject.tags : undefined,
+    };
+
+    // Optimistic UI: dispatch immediately with a temp ID
+    const tempId = `temp-${Date.now()}`;
+    const optimisticProject = {
+      id: tempId,
+      name: newProject.name,
+      description: newProject.description,
+      client_id: newProject.client_id || "",
+      owner_id: newProject.owner_id || "",
+      priority: newProject.priority,
+      status: payload.status!,
+      deadline: newProject.deadline,
+      monthly_hour_allocation: newProject.monthly_hour_allocation,
+      tags: newProject.tags,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    dispatch({ type: "ADD_PROJECT", payload: optimisticProject });
+    setShowCreateModal(false);
+    setNewProject({
+      name: "",
+      description: "",
+      client_id: "",
+      priority: "medium",
+      status: "not_started",
+      deadline: "",
+      monthly_hour_allocation: 40,
+      tags: [],
+      owner_id: "",
+    });
+    setNewTag("");
+
     try {
-      if (!user) return;
-      // Only include fields defined in the backend project model
-      const payload: Partial<ApiProject> & {
-        client?: string;
-        monthlyHours?: number;
-        tags?: string[];
-        owner?: string;
-      } = {
-        name: newProject.name,
-        description: newProject.description,
-        createdBy: user._id!,
-        deadline: newProject.deadline,
-        priority: newProject.priority as ApiProject["priority"],
-        status:
-          newProject.status === "not_started"
-            ? "Not Started"
-            : newProject.status === "in_progress"
-            ? "In Progress"
-            : newProject.status === "on_hold"
-            ? "On Hold"
-            : newProject.status === "completed"
-            ? "Completed"
-            : newProject.status === "cancelled"
-            ? "Cancelled"
-            : newProject.status === "retainer"
-            ? "Retainer"
-            : "Not Started",
-        client: newProject.client_id || undefined,
-        owner: newProject.owner_id || undefined,
-        monthlyHours: newProject.monthly_hour_allocation || undefined,
-        tags: newProject.tags.length > 0 ? newProject.tags : undefined,
-      };
       const res = await ProjectService.createProject(payload);
-      console.log("Created project:", res);
-      // Append the newly created project to local state
       const created = res.data?.data;
       if (created) {
-        // Update local list
-        setProjects((prev) => [...prev, created]);
-        // Map ApiProject to context Project and dispatch for EditProject
-        const ctxProject = {
+        const realProject = {
           id: created._id!,
           name: created.name,
           description: created.description || "",
@@ -173,23 +231,11 @@ export function Projects() {
           created_at: created.createdAt || new Date().toISOString(),
           updated_at: created.updatedAt || new Date().toISOString(),
         };
-        dispatch({ type: "ADD_PROJECT", payload: ctxProject });
+        dispatch({ type: "UPDATE_PROJECT", payload: realProject });
       }
-      setShowCreateModal(false);
-      setNewProject({
-        name: "",
-        description: "",
-        client_id: "",
-        priority: "medium",
-        status: "not_started",
-        deadline: "",
-        monthly_hour_allocation: 40,
-        tags: [],
-        owner_id: "",
-      });
-      setNewTag("");
     } catch (error) {
-      console.error("Error creating project:", error);
+      console.error("Failed to create project:", error);
+      dispatch({ type: "DELETE_PROJECT", payload: { id: tempId } });
     }
   };
 
@@ -214,26 +260,93 @@ export function Projects() {
         break;
       }
       case "duplicate": {
-        const duplicatedProject: ApiProject = {
-          ...project,
-          _id: undefined,
-          name: `${project.name} (Copy)` || "Untitled",
+        // Optimistic duplicate: create temp clone and dispatch
+        const tempId = `temp-${Date.now()}`;
+        const duplicateCtx = {
+          id: tempId,
+          name: `${project.name} (Copy)`,
+          description: project.description || "",
+          client_id: project.client || "",
+          owner_id: project.owner || "",
+          priority: project.priority,
           status: "Not Started",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          deadline: project.deadline,
+          monthly_hour_allocation: project.monthlyHours || 0,
+          tags: project.tags || [],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         };
-        setProjects((prev) => [...prev, duplicatedProject]);
+        dispatch({ type: "ADD_PROJECT", payload: duplicateCtx });
+        // Fire-and-forget API call
+        (async () => {
+          try {
+            const payload = {
+              name: duplicateCtx.name,
+              description: duplicateCtx.description,
+              createdBy: duplicateCtx.owner_id,
+              deadline: duplicateCtx.deadline,
+              priority: duplicateCtx.priority,
+              status: duplicateCtx.status,
+              client: duplicateCtx.client_id,
+              owner: duplicateCtx.owner_id,
+              monthlyHours: duplicateCtx.monthly_hour_allocation,
+              tags: duplicateCtx.tags,
+            };
+            const res = await ProjectService.createProject(payload);
+            const created = res.data?.data;
+            if (created) {
+              const real = {
+                id: created._id!,
+                name: created.name,
+                description: created.description || "",
+                client_id: created.client || "",
+                owner_id: created.owner || "",
+                priority: created.priority,
+                status: created.status,
+                deadline: created.deadline,
+                monthly_hour_allocation: created.monthlyHours || 0,
+                tags: created.tags || [],
+                created_at: created.createdAt || "",
+                updated_at: created.updatedAt || "",
+              };
+              dispatch({ type: "UPDATE_PROJECT", payload: real });
+            }
+          } catch (err) {
+            console.error("Duplicate project failed:", err);
+            dispatch({ type: "DELETE_PROJECT", payload: { id: tempId } });
+          }
+        })();
         break;
       }
       case "archive": {
-        const archivedProject: ApiProject = {
-          ...project,
-          status: "Cancelled",
-          updatedAt: new Date().toISOString(),
+        // Optimistic archive: update status locally
+        const prev = {
+          id: project._id!,
+          status: project.status,
+          updated_at: project.updatedAt,
         };
-        setProjects((prev) =>
-          prev.map((p) => (p._id === project._id ? archivedProject : p))
-        );
+        dispatch({
+          type: "UPDATE_PROJECT",
+          payload: {
+            ...project,
+            id: project._id!,
+            status: "Cancelled",
+            updated_at: new Date().toISOString(),
+          },
+        });
+        ProjectService.updateProject(project._id!, { status: "Cancelled" })
+          .catch((err) => {
+            console.error("Archive failed:", err);
+            dispatch({
+              type: "UPDATE_PROJECT",
+              payload: {
+                ...project,
+                id: prev.id,
+                status: prev.status,
+                updated_at: prev.updated_at,
+              },
+            });
+          });
         break;
       }
       case "delete": {
@@ -245,18 +358,34 @@ export function Projects() {
   };
 
   const handleDeleteProject = async () => {
-    if (selectedProject?._id) {
-      try {
-        await ProjectService.deleteProject(selectedProject._id);
-        setProjects((prev) =>
-          prev.filter((p) => p._id !== selectedProject._id)
-        );
-      } catch (error) {
-        console.error("Failed to delete project:", error);
-      } finally {
-        setShowDeleteModal(false);
-        setSelectedProject(null);
-      }
+    if (!selectedProject?._id) return;
+    const toRemove = selectedProject;
+    // Optimistic delete
+    dispatch({ type: "DELETE_PROJECT", payload: { id: toRemove._id } });
+    setShowDeleteModal(false);
+    setSelectedProject(null);
+    try {
+      await ProjectService.deleteProject(toRemove._id);
+    } catch (error) {
+      console.error("Failed to delete project:", error);
+      // Revert on failure
+      dispatch({
+        type: "ADD_PROJECT",
+        payload: {
+          id: toRemove._id,
+          name: toRemove.name,
+          description: toRemove.description || "",
+          client_id: toRemove.client || "",
+          owner_id: toRemove.owner || "",
+          priority: toRemove.priority,
+          status: toRemove.status,
+          deadline: toRemove.deadline,
+          monthly_hour_allocation: toRemove.monthlyHours || 0,
+          tags: toRemove.tags || [],
+          created_at: toRemove.createdAt || "",
+          updated_at: toRemove.updatedAt || "",
+        },
+      });
     }
   };
 
@@ -383,7 +512,7 @@ export function Projects() {
     );
   };
 
-  const filteredProjects = projects.filter((project) => {
+  const filteredProjects = allProjects.filter((project) => {
     const matchesSearch =
       project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (project.description?.toLowerCase().includes(searchTerm.toLowerCase()) ??
