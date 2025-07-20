@@ -62,9 +62,9 @@ export function Tasks() {
           ProjectService.getAllProjects(),
         ]);
         console.log("Fetched Users:", usersRes);
-        console.log(tasksRes);
+        console.log(tasksRes.data?.data);
         // Store all tasks
-        setAllTasks(tasksRes.data.data || []);
+        setAllTasks(tasksRes.data?.data || []);
         // Extract users from response
         const allUsers = usersRes.data?.data || [];
         setUsers(allUsers.filter(Boolean));
@@ -105,7 +105,7 @@ export function Tasks() {
     statusFilter === "all" &&
     assigneeFilter === "all" &&
     projectFilter === "all"
-      ? allTasks.filter((t) => t.assignedTo === user?._id)
+      ? allTasks.filter((t) => t.assignedTo._id === user?._id)
       : allTasks;
   const filteredTasks = baseTasks.filter(isValidTask).filter((task) => {
     const matchesSearch =
@@ -115,7 +115,7 @@ export function Tasks() {
     const matchesStatus =
       statusFilter === "all" || task.status === statusFilter;
     const matchesAssignee =
-      assigneeFilter === "all" || task.assignedTo === assigneeFilter;
+      assigneeFilter === "all" || task.assignedTo._id === assigneeFilter;
     const matchesProject =
       projectFilter === "all" ||
       (typeof task.project === "object"
