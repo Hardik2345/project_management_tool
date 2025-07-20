@@ -8,7 +8,6 @@ import {
   MoreVertical,
   Users,
   Calendar,
-  Clock,
   Edit,
   Copy,
   Archive,
@@ -58,7 +57,25 @@ export function Projects() {
     owner_id: "", // add owner_id for owner selection
   });
 
-  const [projects, setProjects] = useState<ApiProject[]>([]);
+  const { reloadTasksAndMeta } = useApp(); // Add reloadTasksAndMeta
+
+  // Adapter: Map context projects to ApiProject shape for UI consistency
+  const allProjects = state.projects.map((p) => ({
+    _id: p.id,
+    name: p.name,
+    description: p.description,
+    createdBy: p.owner_id,
+    createdAt: p.created_at,
+    updatedAt: p.updated_at,
+    deadline: p.deadline,
+    priority: p.priority,
+    status: p.status,
+    client: p.client_id || "",
+    owner: p.owner_id,
+    monthlyHours: p.monthly_hour_allocation,
+    tags: p.tags || [],
+  })) as ApiProject[];
+
   const [clients, setClients] = useState<ApiClient[]>([]);
   const [owners, setOwners] = useState<ApiUser[]>([]);
 
@@ -82,19 +99,12 @@ export function Projects() {
     };
   }, [activeDropdown]);
 
+  // Load projects via context on user change
   useEffect(() => {
-    const fetchProjects = async () => {
-      if (!user || !user._id) return;
-      try {
-        const res = await ProjectService.getAllProjects();
-        console.log("Fetched projects:", res);
-        setProjects(res || []);
-      } catch (error) {
-        console.error("Failed to fetch projects:", error);
-      }
-    };
-    fetchProjects();
-  }, [user]);
+    if (user) {
+      reloadTasksAndMeta();
+    }
+  }, [user, reloadTasksAndMeta]);
 
   // Fetch owners and clients for dynamic select fields
   useEffect(() => {
@@ -153,25 +163,22 @@ export function Projects() {
       };
       const res = await ProjectService.createProject(payload);
       console.log("Created project:", res);
-      // Append the newly created project to local state
-      const created = res.data?.data;
-      if (created) {
-        // Update local list
-        setProjects((prev) => [...prev, created]);
-        // Map ApiProject to context Project and dispatch for EditProject
+      const createdApi = res.data?.project;
+      if (createdApi) {
+        // Optimistically add to context
         const ctxProject = {
-          id: created._id!,
-          name: created.name,
-          description: created.description || "",
-          client_id: created.client || "",
-          owner_id: created.owner || "",
-          priority: created.priority,
-          status: created.status,
-          deadline: created.deadline,
-          monthly_hour_allocation: created.monthlyHours || 0,
-          tags: created.tags || [],
-          created_at: created.createdAt || new Date().toISOString(),
-          updated_at: created.updatedAt || new Date().toISOString(),
+          id: createdApi._id || "",
+          name: createdApi.name,
+          description: createdApi.description || "",
+          client_id: createdApi.client,
+          owner_id: createdApi.owner,
+          priority: createdApi.priority,
+          status: createdApi.status,
+          deadline: createdApi.deadline || "",
+          monthly_hour_allocation: createdApi.monthlyHours || 0,
+          tags: createdApi.tags || [],
+          created_at: createdApi.createdAt || new Date().toISOString(),
+          updated_at: createdApi.updatedAt || new Date().toISOString(),
         };
         dispatch({ type: "ADD_PROJECT", payload: ctxProject });
       }
@@ -214,26 +221,31 @@ export function Projects() {
         break;
       }
       case "duplicate": {
-        const duplicatedProject: ApiProject = {
-          ...project,
-          _id: undefined,
-          name: `${project.name} (Copy)` || "Untitled",
-          status: "Not Started",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+        // Optimistically duplicate in context
+        const ctxDup = {
+          id: Date.now().toString(),
+          name: `${project.name} (Copy)`,
+          description: project.description || "",
+          client_id: project.client,
+          owner_id: project.owner,
+          priority: project.priority,
+          status: project.status as "Not Started" | "In Progress" | "On Hold" | "Completed" | "Cancelled",
+          deadline: project.deadline || "",
+          monthly_hour_allocation: project.monthlyHours,
+          tags: project.tags,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         };
-        setProjects((prev) => [...prev, duplicatedProject]);
+        dispatch({ type: "ADD_PROJECT", payload: ctxDup });
         break;
       }
       case "archive": {
-        const archivedProject: ApiProject = {
-          ...project,
-          status: "Cancelled",
-          updatedAt: new Date().toISOString(),
-        };
-        setProjects((prev) =>
-          prev.map((p) => (p._id === project._id ? archivedProject : p))
-        );
+        // Optimistically update status in context
+        const existingCtx = state.projects.find(p => p.id === project._id);
+        if (existingCtx) {
+          const updatedCtx = { ...existingCtx, status: "Cancelled" as const, updated_at: new Date().toISOString() };
+          dispatch({ type: "UPDATE_PROJECT", payload: updatedCtx });
+        }
         break;
       }
       case "delete": {
@@ -248,9 +260,8 @@ export function Projects() {
     if (selectedProject?._id) {
       try {
         await ProjectService.deleteProject(selectedProject._id);
-        setProjects((prev) =>
-          prev.filter((p) => p._id !== selectedProject._id)
-        );
+        // Remove from context
+        dispatch({ type: "SET_PROJECTS", payload: state.projects.filter(p => p.id !== selectedProject._id) });
       } catch (error) {
         console.error("Failed to delete project:", error);
       } finally {
@@ -383,7 +394,7 @@ export function Projects() {
     );
   };
 
-  const filteredProjects = projects.filter((project) => {
+  const filteredProjects = allProjects.filter((project) => {
     const matchesSearch =
       project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (project.description?.toLowerCase().includes(searchTerm.toLowerCase()) ??
