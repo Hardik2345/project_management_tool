@@ -64,7 +64,7 @@ export function Tasks() {
         console.log("Fetched Users:", usersRes);
         console.log(tasksRes);
         // Store all tasks
-        setAllTasks(tasksRes.tasks || []);
+        setAllTasks(tasksRes.data.data || []);
         // Extract users from response
         const allUsers = usersRes.data?.data || [];
         setUsers(allUsers.filter(Boolean));
