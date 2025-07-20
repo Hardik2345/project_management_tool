@@ -319,6 +319,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // Fetch all tasks from backend so TaskModal can show tasks for any assignee
       try {
         const tasksRes = await TaskService.getAllTasks();
+        console.log("Fetched tasks:", tasksRes);
         // ApiResponse.data contains { tasks: ApiTask[] }
         const apiTasks = tasksRes.data.tasks || [];
         const tasks = apiTasks.map((t) => ({

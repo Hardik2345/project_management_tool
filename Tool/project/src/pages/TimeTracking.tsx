@@ -366,6 +366,7 @@ export function TimeTracking() {
   const getFilteredTimeEntries = () => {
     let filtered = state.timeEntries.filter((te) => te.user_id === user?._id);
     console.log("filtered time entries:", filtered);
+    console.log("filtered tasks:", state.tasks);
 
     // Date filter
     const now = new Date();
