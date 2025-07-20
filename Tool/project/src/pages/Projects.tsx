@@ -58,7 +58,25 @@ export function Projects() {
     owner_id: "", // add owner_id for owner selection
   });
 
-  const [projects, setProjects] = useState<ApiProject[]>([]);
+  const { reloadTasksAndMeta } = useApp(); // load context data
+
+  // Adapt context projects to ApiProject shape for UI consistency
+  const allProjects = state.projects.map((p) => ({
+    _id: p.id,
+    name: p.name,
+    description: p.description,
+    createdBy: p.owner_id,
+    createdAt: p.created_at,
+    updatedAt: p.updated_at,
+    deadline: p.deadline,
+    priority: p.priority,
+    status: p.status,
+    client: p.client_id || "",
+    owner: p.owner_id,
+    monthlyHours: p.monthly_hour_allocation,
+    tags: p.tags || [],
+  })) as ApiProject[];
+
   const [clients, setClients] = useState<ApiClient[]>([]);
   const [owners, setOwners] = useState<ApiUser[]>([]);
 
@@ -67,10 +85,7 @@ export function Projects() {
     function handleClickOutside(event: MouseEvent) {
       if (activeDropdown && dropdownRefs.current[activeDropdown]) {
         const dropdownElement = dropdownRefs.current[activeDropdown];
-        if (
-          dropdownElement &&
-          !dropdownElement.contains(event.target as Node)
-        ) {
+        if (!dropdownElement.contains(event.target as Node)) {
           setActiveDropdown(null);
         }
       }
@@ -82,19 +97,14 @@ export function Projects() {
     };
   }, [activeDropdown]);
 
+  // --- Removed local projects state; using global context projects instead
+
+  // Load projects via context on user change
   useEffect(() => {
-    const fetchProjects = async () => {
-      if (!user || !user._id) return;
-      try {
-        const res = await ProjectService.getAllProjects();
-        console.log("Fetched projects:", res);
-        setProjects(res || []);
-      } catch (error) {
-        console.error("Failed to fetch projects:", error);
-      }
-    };
-    fetchProjects();
-  }, [user]);
+    if (user) {
+      reloadTasksAndMeta();
+    }
+  }, [user, reloadTasksAndMeta]);
 
   // Fetch owners and clients for dynamic select fields
   useEffect(() => {
@@ -153,25 +163,22 @@ export function Projects() {
       };
       const res = await ProjectService.createProject(payload);
       console.log("Created project:", res);
-      // Append the newly created project to local state
-      const created = res.data?.data;
-      if (created) {
-        // Update local list
-        setProjects((prev) => [...prev, created]);
-        // Map ApiProject to context Project and dispatch for EditProject
+      const createdApi = res.data?.project;
+      if (createdApi) {
+        // Optimistically add to context
         const ctxProject = {
-          id: created._id!,
-          name: created.name,
-          description: created.description || "",
-          client_id: created.client || "",
-          owner_id: created.owner || "",
-          priority: created.priority,
-          status: created.status,
-          deadline: created.deadline,
-          monthly_hour_allocation: created.monthlyHours || 0,
-          tags: created.tags || [],
-          created_at: created.createdAt || new Date().toISOString(),
-          updated_at: created.updatedAt || new Date().toISOString(),
+          id: createdApi._id || "",
+          name: createdApi.name,
+          description: createdApi.description || "",
+          client_id: createdApi.client,
+          owner_id: createdApi.owner,
+          priority: createdApi.priority,
+          status: createdApi.status,
+          deadline: createdApi.deadline || "",
+          monthly_hour_allocation: createdApi.monthlyHours || 0,
+          tags: createdApi.tags || [],
+          created_at: createdApi.createdAt || new Date().toISOString(),
+          updated_at: createdApi.updatedAt || new Date().toISOString(),
         };
         dispatch({ type: "ADD_PROJECT", payload: ctxProject });
       }
@@ -206,6 +213,7 @@ export function Projects() {
     navigate(`/projects/${projectId}/edit`);
   };
 
+  // --- Fix dropdown handler signature ---
   const handleDropdownAction = (action: string, project: ApiProject) => {
     setActiveDropdown(null);
     switch (action) {
@@ -214,26 +222,31 @@ export function Projects() {
         break;
       }
       case "duplicate": {
-        const duplicatedProject: ApiProject = {
-          ...project,
-          _id: undefined,
-          name: `${project.name} (Copy)` || "Untitled",
-          status: "Not Started",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+        // Optimistically duplicate in context
+        const ctxDup = {
+          id: Date.now().toString(),
+          name: `${project.name} (Copy)`,
+          description: project.description || "",
+          client_id: project.client,
+          owner_id: project.owner,
+          priority: project.priority,
+          status: project.status as "Not Started" | "In Progress" | "On Hold" | "Completed" | "Cancelled",
+          deadline: project.deadline || "",
+          monthly_hour_allocation: project.monthlyHours,
+          tags: project.tags,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         };
-        setProjects((prev) => [...prev, duplicatedProject]);
+        dispatch({ type: "ADD_PROJECT", payload: ctxDup });
         break;
       }
       case "archive": {
-        const archivedProject: ApiProject = {
-          ...project,
-          status: "Cancelled",
-          updatedAt: new Date().toISOString(),
-        };
-        setProjects((prev) =>
-          prev.map((p) => (p._id === project._id ? archivedProject : p))
-        );
+        // Optimistically update status in context
+        const existingCtx = state.projects.find(p => p.id === project._id);
+        if (existingCtx) {
+          const updatedCtx = { ...existingCtx, status: "Cancelled" as const, updated_at: new Date().toISOString() };
+          dispatch({ type: "UPDATE_PROJECT", payload: updatedCtx });
+        }
         break;
       }
       case "delete": {
@@ -248,9 +261,8 @@ export function Projects() {
     if (selectedProject?._id) {
       try {
         await ProjectService.deleteProject(selectedProject._id);
-        setProjects((prev) =>
-          prev.filter((p) => p._id !== selectedProject._id)
-        );
+        // Remove from context
+        dispatch({ type: "SET_PROJECTS", payload: state.projects.filter(p => p.id !== selectedProject._id) });
       } catch (error) {
         console.error("Failed to delete project:", error);
       } finally {
@@ -260,6 +272,7 @@ export function Projects() {
     }
   };
 
+  // --- Fix getProjectStats ---
   const getProjectStats = (projectId: string) => {
     const projectTasks = state.tasks.filter((t) => t.project_id === projectId);
     const completedTasks = projectTasks.filter(
@@ -267,11 +280,10 @@ export function Projects() {
     ).length;
     const totalTasks = projectTasks.length;
     const projectTimeEntries = state.timeEntries.filter(
-      (te) => te.project_id._id === projectId
+      (te) => te.project_id === projectId
     );
     const totalHours =
       projectTimeEntries.reduce((sum, te) => sum + te.duration, 0) / 60;
-
     return { completedTasks, totalTasks, totalHours };
   };
 
@@ -383,7 +395,7 @@ export function Projects() {
     );
   };
 
-  const filteredProjects = projects.filter((project) => {
+  const filteredProjects = allProjects.filter((project) => {
     const matchesSearch =
       project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (project.description?.toLowerCase().includes(searchTerm.toLowerCase()) ??
@@ -724,7 +736,7 @@ export function Projects() {
                   onChange={(e) =>
                     setNewProject({
                       ...newProject,
-                      priority: e.target.value as ApiProject["priority"],
+                      priority: e.target.value as "low" | "medium" | "high" | "critical",
                     })
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -745,7 +757,7 @@ export function Projects() {
                   onChange={(e) =>
                     setNewProject({
                       ...newProject,
-                      status: e.target.value as typeof newProject.status,
+                      status: e.target.value as "not_started" | "in_progress" | "on_hold" | "completed" | "cancelled",
                     })
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
