@@ -23,6 +23,7 @@ interface TaskModalProps {
   onClose: () => void;
   taskId: string | null;
   onDelete?: (id: string) => void;
+  onSave?: () => void;
 }
 
 export function TaskModal({
@@ -30,6 +31,7 @@ export function TaskModal({
   onClose,
   taskId,
   onDelete,
+  onSave,
 }: TaskModalProps) {
   const { state, dispatch } = useApp();
   const [loading, setLoading] = useState(false);
@@ -162,6 +164,7 @@ export function TaskModal({
 
       dispatch({ type: "UPDATE_TASK", payload: updatedTask });
       setHasChanges(false);
+      if (onSave) onSave();
 
       // Show success feedback
       setTimeout(() => {
