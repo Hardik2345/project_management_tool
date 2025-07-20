@@ -140,11 +140,33 @@ export function TaskModal({
 
   const handleSave = async () => {
     if (!task) return;
-
+    // Prepare updated task for optimistic UI
+    const updatedContextTask = {
+      id: task.id,
+      title: formData.title,
+      description: formData.description,
+      project_id: formData.project_id,
+      assignee_id: formData.assignee_id,
+      priority: formData.priority,
+      status: formData.status,
+      estimated_hours: formData.estimated_hours,
+      due_date: formData.due_date
+        ? new Date(formData.due_date).toISOString()
+        : undefined,
+      created_at: task.created_at,
+      updated_at: new Date().toISOString(),
+      assignee: task.assignee,
+      project: task.project,
+      subtasks: task.subtasks,
+    };
+    // Optimistically update context and close modal
+    dispatch({ type: "UPDATE_TASK", payload: updatedContextTask });
+    setHasChanges(false);
+    onClose();
     setLoading(true);
     try {
-      // Call API to update task
-      const payload = {
+      // Persist update to API
+      await TaskService.updateTask(task.id, {
         title: formData.title,
         description: formData.description,
         status: formData.status,
@@ -155,30 +177,8 @@ export function TaskModal({
         dueDate: formData.due_date
           ? new Date(formData.due_date).toISOString()
           : undefined,
-      };
-      const res = await TaskService.updateTask(task.id, payload);
-      const updatedApiTask = res.data?.task;
-      if (!updatedApiTask) throw new Error("Failed to update task");
-
-      // Map API response to context Task shape
-      const updatedContextTask = {
-        id: updatedApiTask._id ?? task.id,
-        title: updatedApiTask.title,
-        description: updatedApiTask.description || "",
-        project_id: updatedApiTask.project,
-        assignee_id: updatedApiTask.assignedTo,
-        priority: updatedApiTask.priority,
-        status: updatedApiTask.status,
-        estimated_hours: updatedApiTask.estimatedHours || 0,
-        due_date: updatedApiTask.dueDate,
-        created_at: updatedApiTask.createdAt || task.created_at,
-        updated_at: updatedApiTask.updatedAt || new Date().toISOString(),
-        assignee: task.assignee,
-        project: task.project,
-        subtasks: task.subtasks,
-      };
-
-      // Update project tags if they changed
+      });
+      // Update project tags if necessary
       if (
         project &&
         JSON.stringify(project.tags) !== JSON.stringify(formData.tags)
@@ -190,16 +190,9 @@ export function TaskModal({
         };
         dispatch({ type: "UPDATE_PROJECT", payload: updatedProject });
       }
-
-      dispatch({ type: "UPDATE_TASK", payload: updatedContextTask });
-      setHasChanges(false);
-
-      // Show success feedback
-      setTimeout(() => {
-        onClose();
-      }, 500);
     } catch (error) {
       console.error("Error updating task:", error);
+      // TODO: rollback optimistic update if needed
     } finally {
       setLoading(false);
     }
