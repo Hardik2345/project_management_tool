@@ -397,14 +397,14 @@ export function TimeTracking() {
 
     // Project filter
     if (projectFilter !== "all") {
-      filtered = filtered.filter((te) => te.project_id._id === projectFilter);
+      filtered = filtered.filter((te) => extractId(te.project_id) === projectFilter);
     }
 
     // Search filter
     if (searchTerm) {
       filtered = filtered.filter((te) => {
-        const task = state.tasks.find((t) => t._id === te.task_id._id);
-        const project = state.projects.find((p) => p._id === te.project_id._id);
+        const task = state.tasks.find((t) => t.id === extractId(te.task_id));
+        const project = state.projects.find((p) => p.id === extractId(te.project_id));
         return (
           te.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
           task?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -426,14 +426,15 @@ export function TimeTracking() {
           aValue = a.duration;
           bValue = b.duration;
           break;
-        case "project":
+        case "project": {
           const aProject =
-            state.projects.find((p) => p._id === a.project_id._id)?.name || "";
+            state.projects.find((p) => p.id === extractId(a.project_id))?.name || "";
           const bProject =
-            state.projects.find((p) => p.id === b.project_id._id)?.name || "";
+            state.projects.find((p) => p.id === extractId(b.project_id))?.name || "";
           aValue = aProject.toLowerCase();
           bValue = bProject.toLowerCase();
           break;
+        }
         default:
           aValue = new Date(a.created_at).getTime();
           bValue = new Date(b.created_at).getTime();
@@ -472,7 +473,7 @@ export function TimeTracking() {
     });
 
     const projectSummary = weekEntries.reduce((acc, te) => {
-      const project = state.projects.find((p) => p._id === te.project_id._id);
+      const project = state.projects.find((p) => p.id === extractId(te.project_id));
       const projectName = project?.name || "Unknown Project";
       acc[projectName] = (acc[projectName] || 0) + te.duration;
       return acc;
@@ -497,9 +498,9 @@ export function TimeTracking() {
     ];
     const rows = state.timeEntries.map((te) => {
       const project =
-        state.projects.find((p) => p._id === te.project_id._id)?.name || "";
+        state.projects.find((p) => p.id === extractId(te.project_id))?.name || "";
       const task =
-        state.tasks.find((t) => t._id === te.task_id._id)?.title || "";
+        state.tasks.find((t) => t.id === extractId(te.task_id))?.title || "";
       // Escape quotes in description
       const desc = te.description.replace(/"/g, '""');
       return [te.date, te.created_at, project, task, desc, te.duration];
@@ -583,14 +584,14 @@ export function TimeTracking() {
                       </h4>
                       <p className="text-blue-100 text-sm mb-1">
                         {
-                          state.tasks.find((t) => t._id === activeTimer.taskId)
+                        state.tasks.find((t) => t.id === activeTimer.taskId)
                             ?.title
                         }
                       </p>
                       <p className="text-blue-200 text-xs">
                         {
-                          state.projects.find(
-                            (p) => p._id === activeTimer.projectId
+                        state.projects.find(
+                            (p) => p.id === activeTimer.projectId
                           )?.name
                         }
                       </p>
@@ -634,7 +635,7 @@ export function TimeTracking() {
                     >
                       <option value="">Select project...</option>
                       {state.projects.map((project) => (
-                        <option key={project._id} value={project._id}>
+                        <option key={project.id} value={project.id}>
                           {project.name}
                         </option>
                       ))}
@@ -853,12 +854,8 @@ export function TimeTracking() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredTimeEntries.map((entry) => {
-                const task = state.tasks.find(
-                  (t) => t.id === entry.task_id._id
-                );
-                const project = state.projects.find(
-                  (p) => p.id === entry.project_id._id
-                );
+                const task = state.tasks.find((t) => t.id === extractId(entry.task_id));
+                const project = state.projects.find((p) => p.id === extractId(entry.project_id));
 
                 return (
                   <tr
