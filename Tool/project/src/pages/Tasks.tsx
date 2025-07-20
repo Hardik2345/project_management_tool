@@ -9,8 +9,6 @@ import {
   LayoutGrid,
   List,
   Clock,
-  X,
-  Tag,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
@@ -36,7 +34,6 @@ export function Tasks() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  const [newTag, setNewTag] = useState("");
   const [newTask, setNewTask] = useState({
     title: "",
     description: "",
@@ -153,7 +150,6 @@ export function Tasks() {
         dueDate: "",
         tags: [],
       });
-      setNewTag("");
     } catch (error) {
       console.error("Error creating task:", error);
     }
@@ -187,24 +183,6 @@ export function Tasks() {
     }
     setSelectedTaskId(taskId);
     setShowTaskModal(true);
-  };
-
-  // Tag management functions - matching TaskModal exactly
-  const handleAddTag = () => {
-    if (newTag.trim() && !newTask.tags.includes(newTag.trim())) {
-      setNewTask((prev) => ({
-        ...prev,
-        tags: [...prev.tags, newTag.trim()],
-      }));
-      setNewTag("");
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    setNewTask((prev) => ({
-      ...prev,
-      tags: prev.tags.filter((tag) => tag !== tagToRemove),
-    }));
   };
 
   const statusColumns = [
@@ -726,57 +704,6 @@ export function Tasks() {
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
-                </div>
-
-                {/* Tags - Matching TaskModal exactly */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tags
-                  </label>
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap gap-2">
-                      {newTask.tags.map((tag, index) => (
-                        <Badge
-                          key={index}
-                          variant="secondary"
-                          className="flex items-center space-x-1 px-3 py-1"
-                        >
-                          <Tag className="w-3 h-3" />
-                          <span>{tag}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveTag(tag)}
-                            className="ml-1 text-gray-400 hover:text-gray-600"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="text"
-                        value={newTag}
-                        onChange={(e) => setNewTag(e.target.value)}
-                        onKeyPress={(e) =>
-                          e.key === "Enter" &&
-                          (e.preventDefault(), handleAddTag())
-                        }
-                        placeholder="Add a tag"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                      />
-                      <Button
-                        type="button"
-                        onClick={handleAddTag}
-                        disabled={!newTag.trim()}
-                        size="sm"
-                        icon={Plus}
-                      >
-                        Add
-                      </Button>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
