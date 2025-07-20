@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
-import { ArrowLeft, Save, X, Calendar, Users, Tag, AlertTriangle } from 'lucide-react';
+import { ProjectService } from '../services/projectService';
+import { ArrowLeft, Save, X, Tag, AlertTriangle } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { format } from 'date-fns';
@@ -20,8 +21,8 @@ export function EditProject() {
     description: '',
     client_id: '',
     owner_id: '',
-    priority: 'medium' as const,
-    status: 'not_started' as const,
+    priority: 'medium' as 'low' | 'medium' | 'high' | 'critical',
+    status: 'not_started' as 'not_started' | 'in_progress' | 'on_hold' | 'completed' | 'cancelled',
     deadline: '',
     monthly_hour_allocation: 40,
     tags: [] as string[],
@@ -31,13 +32,14 @@ export function EditProject() {
 
   useEffect(() => {
     if (project) {
+      const projectStatus = project.status.toLowerCase().replace(' ', '_') as typeof formData.status;
       setFormData({
         name: project.name,
         description: project.description,
         client_id: project.client_id || '',
         owner_id: project.owner_id,
         priority: project.priority,
-        status: project.status,
+        status: projectStatus,
         deadline: project.deadline ? format(new Date(project.deadline), 'yyyy-MM-dd') : '',
         monthly_hour_allocation: project.monthly_hour_allocation,
         tags: project.tags || [],
@@ -58,7 +60,7 @@ export function EditProject() {
     );
   }
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setHasChanges(true);
   };
@@ -75,21 +77,53 @@ export function EditProject() {
   };
 
   const handleSave = async () => {
+    if (!id) return;
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const updatedProject = {
-        ...project,
-        ...formData,
-        deadline: formData.deadline ? new Date(formData.deadline).toISOString() : undefined,
-        updated_at: new Date().toISOString(),
+      const statusMap = {
+        not_started: "Not Started",
+        in_progress: "In Progress",
+        on_hold: "On Hold",
+        completed: "Completed",
+        cancelled: "Cancelled",
       };
 
-      dispatch({ type: 'UPDATE_PROJECT', payload: updatedProject });
-      setHasChanges(false);
-      navigate('/projects');
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        client: formData.client_id,
+        owner: formData.owner_id,
+        priority: formData.priority,
+        status: statusMap[formData.status],
+        deadline: formData.deadline ? new Date(formData.deadline).toISOString() : undefined,
+        monthlyHours: formData.monthly_hour_allocation,
+        tags: formData.tags,
+      };
+
+      const res = await ProjectService.updateProject(id, payload);
+      const updatedProjectFromApi = res.data?.project;
+
+      if (updatedProjectFromApi) {
+        const contextProject = {
+          id: updatedProjectFromApi._id,
+          name: updatedProjectFromApi.name,
+          description: updatedProjectFromApi.description,
+          client_id: updatedProjectFromApi.client,
+          owner_id: updatedProjectFromApi.owner,
+          priority: updatedProjectFromApi.priority,
+          status: updatedProjectFromApi.status,
+          deadline: updatedProjectFromApi.deadline,
+          monthly_hour_allocation: updatedProjectFromApi.monthlyHours,
+          tags: updatedProjectFromApi.tags,
+          created_at: updatedProjectFromApi.createdAt,
+          updated_at: updatedProjectFromApi.updatedAt,
+        };
+        dispatch({ type: 'UPDATE_PROJECT', payload: contextProject });
+        setHasChanges(false);
+        navigate('/projects');
+      } else {
+        console.error("Update failed, no project returned from API");
+      }
     } catch (error) {
       console.error('Error updating project:', error);
     } finally {
