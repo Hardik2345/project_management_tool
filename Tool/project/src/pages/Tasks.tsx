@@ -48,25 +48,28 @@ export function Tasks() {
   const [users, setUsers] = useState<ApiUser[]>([]);
   const [projects, setProjects] = useState<ApiProject[]>([]);
 
-  // Fetch tasks, users, and projects
-  const fetchTasksAndMeta = async () => {
-    try {
-      if (!user || !user._id) return;
-      const [tasksRes, usersRes, apiProjects] = await Promise.all([
-        TaskService.getAllTasks(),
-        UserService.getAllUsers(),
-        ProjectService.getAllProjects(),
-      ]);
-      console.log(tasksRes.data?.data);
-      setAllTasks(tasksRes.data?.data || []);
-      const allUsers = usersRes.data?.data || [];
-      setUsers(allUsers.filter(Boolean));
-      setProjects(apiProjects.filter(Boolean));
-    } catch (error) {
-      console.error("Failed to fetch tasks, users, or projects:", error);
-    }
-  };
   useEffect(() => {
+    const fetchTasksAndMeta = async () => {
+      try {
+        if (!user || !user._id) return;
+        const [tasksRes, usersRes, apiProjects] = await Promise.all([
+          TaskService.getAllTasks(),
+          UserService.getAllUsers(),
+          ProjectService.getAllProjects(),
+        ]);
+        // console.log("Fetched Users:", usersRes);
+        console.log(tasksRes.data?.data);
+        // Store all tasks
+        setAllTasks(tasksRes.data?.data || []);
+        // Extract users from response
+        const allUsers = usersRes.data?.data || [];
+        setUsers(allUsers.filter(Boolean));
+        // Use the returned projects array directly
+        setProjects(apiProjects.filter(Boolean));
+      } catch (error) {
+        console.error("Failed to fetch tasks, users, or projects:", error);
+      }
+    };
     fetchTasksAndMeta();
   }, [user]);
 
@@ -728,7 +731,6 @@ export function Tasks() {
         onDelete={(deletedId: string) => {
           setAllTasks((prev) => prev.filter((task) => task._id !== deletedId));
         }}
-        onSave={fetchTasksAndMeta}
       />
     </div>
   );
