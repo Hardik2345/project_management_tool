@@ -42,7 +42,7 @@ export function TimeTracking() {
   const [showLogModal, setShowLogModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<any>(null);
-  const [dateFilter, setDateFilter] = useState("week");
+  const [dateFilter, setDateFilter] = useState("all");
   const [projectFilter, setProjectFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("date");
@@ -397,14 +397,18 @@ export function TimeTracking() {
 
     // Project filter
     if (projectFilter !== "all") {
-      filtered = filtered.filter((te) => extractId(te.project_id) === projectFilter);
+      filtered = filtered.filter(
+        (te) => extractId(te.project_id) === projectFilter
+      );
     }
 
     // Search filter
     if (searchTerm) {
       filtered = filtered.filter((te) => {
         const task = state.tasks.find((t) => t.id === extractId(te.task_id));
-        const project = state.projects.find((p) => p.id === extractId(te.project_id));
+        const project = state.projects.find(
+          (p) => p.id === extractId(te.project_id)
+        );
         return (
           te.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
           task?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -428,9 +432,11 @@ export function TimeTracking() {
           break;
         case "project": {
           const aProject =
-            state.projects.find((p) => p.id === extractId(a.project_id))?.name || "";
+            state.projects.find((p) => p.id === extractId(a.project_id))
+              ?.name || "";
           const bProject =
-            state.projects.find((p) => p.id === extractId(b.project_id))?.name || "";
+            state.projects.find((p) => p.id === extractId(b.project_id))
+              ?.name || "";
           aValue = aProject.toLowerCase();
           bValue = bProject.toLowerCase();
           break;
@@ -473,7 +479,9 @@ export function TimeTracking() {
     });
 
     const projectSummary = weekEntries.reduce((acc, te) => {
-      const project = state.projects.find((p) => p.id === extractId(te.project_id));
+      const project = state.projects.find(
+        (p) => p.id === extractId(te.project_id)
+      );
       const projectName = project?.name || "Unknown Project";
       acc[projectName] = (acc[projectName] || 0) + te.duration;
       return acc;
@@ -498,7 +506,8 @@ export function TimeTracking() {
     ];
     const rows = state.timeEntries.map((te) => {
       const project =
-        state.projects.find((p) => p.id === extractId(te.project_id))?.name || "";
+        state.projects.find((p) => p.id === extractId(te.project_id))?.name ||
+        "";
       const task =
         state.tasks.find((t) => t.id === extractId(te.task_id))?.title || "";
       // Escape quotes in description
@@ -584,13 +593,13 @@ export function TimeTracking() {
                       </h4>
                       <p className="text-blue-100 text-sm mb-1">
                         {
-                        state.tasks.find((t) => t.id === activeTimer.taskId)
+                          state.tasks.find((t) => t.id === activeTimer.taskId)
                             ?.title
                         }
                       </p>
                       <p className="text-blue-200 text-xs">
                         {
-                        state.projects.find(
+                          state.projects.find(
                             (p) => p.id === activeTimer.projectId
                           )?.name
                         }
@@ -854,8 +863,12 @@ export function TimeTracking() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredTimeEntries.map((entry) => {
-                const task = state.tasks.find((t) => t.id === extractId(entry.task_id));
-                const project = state.projects.find((p) => p.id === extractId(entry.project_id));
+                const task = state.tasks.find(
+                  (t) => t.id === extractId(entry.task_id)
+                );
+                const project = state.projects.find(
+                  (p) => p.id === extractId(entry.project_id)
+                );
 
                 return (
                   <tr
