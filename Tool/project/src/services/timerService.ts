@@ -28,12 +28,19 @@ export class TimerService {
       })
       .then((res) => res.data);
   }
-  static async stopTimer(userId: string, projectId: string, taskId: string) {
+  static async stopTimer(
+    userId: string,
+    projectId: string,
+    taskId: string,
+    description?: string
+  ) {
+    // Allow optional description when stopping a timer
     return api
       .patch("/timers/stop", {
         userId: toObjectId(userId),
         projectId: toObjectId(projectId),
         taskId: toObjectId(taskId),
+        description,
       })
       .then((res) => res.data);
   }
@@ -51,14 +58,16 @@ export class TimerService {
     task,
     startTime,
     endTime,
+    description,
   }: {
     user: string;
     project: string;
     task: string;
     startTime: string;
     endTime: string;
+    description?: string;
   }) {
-    // All IDs should be valid ObjectId strings, and times should be ISO strings
+    // All IDs should be valid ObjectId strings, times should be ISO strings, and optional description
     return api
       .post("/timers/log", {
         user: toObjectId(user),
@@ -66,6 +75,7 @@ export class TimerService {
         task: toObjectId(task),
         startTime,
         endTime,
+        description,
       })
       .then((res) => res.data);
   }

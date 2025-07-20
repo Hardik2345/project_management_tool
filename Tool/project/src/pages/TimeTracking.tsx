@@ -224,7 +224,12 @@ export function TimeTracking() {
       // Normalize IDs
       const projectId = extractId(activeTimer.projectId);
       const taskId = extractId(activeTimer.taskId);
-      const res = await TimerService.stopTimer(user._id, projectId, taskId);
+      const res = await TimerService.stopTimer(
+        user._id,
+        projectId,
+        taskId,
+        activeTimer.description
+      );
       setBackendTimer(null);
       setActiveTimer(null);
       setTimerDuration(0);
@@ -281,6 +286,7 @@ export function TimeTracking() {
         task: newTimeEntry.taskId,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
+        description: newTimeEntry.description,
       });
       setShowLogModal(false);
       setNewTimeEntry({
@@ -365,8 +371,8 @@ export function TimeTracking() {
   // Filter time entries
   const getFilteredTimeEntries = () => {
     let filtered = state.timeEntries.filter((te) => te.user_id === user?._id);
-    console.log("filtered time entries:", filtered);
-    console.log("filtered tasks:", state.tasks);
+    // console.log("filtered time entries:", filtered);
+    // console.log("filtered tasks:", state.tasks);
 
     // Date filter
     const now = new Date();
@@ -457,7 +463,7 @@ export function TimeTracking() {
   };
 
   const filteredTimeEntries = getFilteredTimeEntries();
-  console.log("real filteredTimeEntries", filteredTimeEntries);
+  // console.log("real filteredTimeEntries", filteredTimeEntries);
   const totalHours =
     filteredTimeEntries.reduce((sum, te) => sum + te.duration, 0) / 60;
 
@@ -465,9 +471,9 @@ export function TimeTracking() {
   const projectTasks = timerForm.projectId
     ? state.tasks.filter((task) => task.project_id === timerForm.projectId)
     : [];
-  console.log("timerForm", timerForm);
-  console.log("state.tasks", state.tasks);
-  console.log("projectTasks", projectTasks);
+  // console.log("timerForm", timerForm);
+  // console.log("state.tasks", state.tasks);
+  // console.log("projectTasks", projectTasks);
 
   // Weekly summary
   const getWeeklySummary = () => {

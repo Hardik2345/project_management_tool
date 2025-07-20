@@ -61,7 +61,7 @@ export function Tasks() {
           UserService.getAllUsers(),
           ProjectService.getAllProjects(),
         ]);
-        console.log("Fetched Users:", usersRes);
+        // console.log("Fetched Users:", usersRes);
         console.log(tasksRes.data?.data);
         // Store all tasks
         setAllTasks(tasksRes.data?.data || []);
@@ -139,7 +139,7 @@ export function Tasks() {
         tags: newTask.tags,
       };
       const res = await TaskService.createTask(payload);
-      console.log("Created task:", res);
+      // console.log("Created task:", res);
       if (res.data?.data) setAllTasks((prev) => [...prev, res.data?.data]);
       setShowCreateModal(false);
       setNewTask({
