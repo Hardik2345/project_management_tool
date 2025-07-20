@@ -43,7 +43,6 @@ export function Tasks() {
     status: "backlog" as const,
     estimatedHours: 1,
     dueDate: "",
-    tags: [] as string[],
   });
   const [allTasks, setAllTasks] = useState<ApiTask[]>([]);
   const [users, setUsers] = useState<ApiUser[]>([]);
@@ -133,7 +132,6 @@ export function Tasks() {
         status: newTask.status,
         estimatedHours: newTask.estimatedHours,
         dueDate: newTask.dueDate,
-        tags: newTask.tags,
       };
       const res = await TaskService.createTask(payload);
       // console.log("Created task:", res);
@@ -148,7 +146,6 @@ export function Tasks() {
         status: "backlog",
         estimatedHours: 1,
         dueDate: "",
-        tags: [],
       });
     } catch (error) {
       console.error("Error creating task:", error);
@@ -249,20 +246,13 @@ export function Tasks() {
             )}
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center">
             <div className="flex items-center">
               <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center">
                 <User className="w-3 h-3 text-gray-600" />
               </div>
               <span className="ml-2 text-xs text-gray-600">
                 {assignee?.name}
-              </span>
-            </div>
-
-            <div className="flex items-center text-xs text-gray-500">
-              <Clock className="w-3 h-3 mr-1" />
-              <span>
-                {Math.round(totalTimeSpent)}h / {task.estimatedHours}h
               </span>
             </div>
           </div>
