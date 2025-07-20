@@ -44,33 +44,37 @@ export function Tasks() {
     estimatedHours: 1,
     dueDate: "",
   });
-  const [allTasks, setAllTasks] = useState<ApiTask[]>([]);
+  // Adapt context tasks to ApiTask shape so downstream UI logic can remain unchanged
+  const allTasks = state.tasks.map((t) => ({
+    _id: t.id,
+    title: t.title,
+    description: t.description,
+    status: t.status,
+    priority: t.priority,
+    dueDate: t.due_date,
+    assignedTo: { _id: t.assignee_id },
+    project: { _id: t.project_id },
+    estimatedHours: t.estimated_hours,
+  })) as unknown as ApiTask[];
   const [users, setUsers] = useState<ApiUser[]>([]);
   const [projects, setProjects] = useState<ApiProject[]>([]);
 
   useEffect(() => {
-    const fetchTasksAndMeta = async () => {
+    const fetchMeta = async () => {
       try {
         if (!user || !user._id) return;
-        const [tasksRes, usersRes, apiProjects] = await Promise.all([
-          TaskService.getAllTasks(),
+        const [usersRes, apiProjects] = await Promise.all([
           UserService.getAllUsers(),
           ProjectService.getAllProjects(),
         ]);
-        // console.log("Fetched Users:", usersRes);
-        console.log(tasksRes.data?.data);
-        // Store all tasks
-        setAllTasks(tasksRes.data?.data || []);
-        // Extract users from response
-        const allUsers = usersRes.data?.data || [];
-        setUsers(allUsers.filter(Boolean));
-        // Use the returned projects array directly
+        // Populate users and projects for dropdowns
+        setUsers(usersRes.data?.data || []);
         setProjects(apiProjects.filter(Boolean));
       } catch (error) {
-        console.error("Failed to fetch tasks, users, or projects:", error);
+        console.error("Failed to fetch users or projects:", error);
       }
     };
-    fetchTasksAndMeta();
+    fetchMeta();
   }, [user]);
 
   // Type guard for valid tasks
@@ -135,7 +139,29 @@ export function Tasks() {
       };
       const res = await TaskService.createTask(payload);
       // console.log("Created task:", res);
-      if (res.data?.data) setAllTasks((prev) => [...prev, res.data?.data]);
+      // On success, dispatch to global context for optimistic UI
+      const created = res.data?.data;
+      if (created) {
+        dispatch({
+          type: "ADD_TASK",
+          payload: {
+            id: created._id || "",
+            title: created.title,
+            description: created.description || "",
+            project_id: created.project,
+            assignee_id: created.assignedTo,
+            priority: created.priority,
+            status: created.status,
+            estimated_hours: created.estimatedHours || 0,
+            due_date: created.dueDate || "",
+            created_at: created.createdAt || "",
+            updated_at: created.updatedAt || "",
+            assignee: undefined,
+            project: undefined,
+            subtasks: [],
+          },
+        });
+      }
       setShowCreateModal(false);
       setNewTask({
         title: "",
@@ -156,15 +182,19 @@ export function Tasks() {
     taskId: string,
     newStatus: ApiTask["status"]
   ) => {
-    // Optimistically update UI
-    setAllTasks((prev) =>
-      prev.map((t) => (t._id === taskId ? { ...t, status: newStatus } : t))
-    );
+    // Optimistically dispatch status update to context
+    const existing = state.tasks.find((t) => t.id === taskId);
+    if (existing) {
+      dispatch({
+        type: "UPDATE_TASK",
+        payload: { ...existing, status: newStatus },
+      });
+    }
     try {
       await TaskService.updateTask(taskId, { status: newStatus });
     } catch (error) {
       console.error("Error updating task status:", error);
-      // Optionally, you could revert the change here
+      // Could dispatch rollback here
     }
   };
 
@@ -729,7 +759,9 @@ export function Tasks() {
         }}
         taskId={selectedTaskId}
         onDelete={(deletedId: string) => {
-          setAllTasks((prev) => prev.filter((task) => task._id !== deletedId));
+          // Optimistically remove the deleted task from context state
+          const remaining = state.tasks.filter((t) => t.id !== deletedId);
+          dispatch({ type: "SET_TASKS", payload: remaining });
         }}
       />
     </div>
