@@ -319,34 +319,41 @@ export function Projects() {
         break;
       }
       case "archive": {
-        // Optimistic archive: update status locally
-        const prev = {
+        // Optimistic archive: map ApiProject to context Project shape and dispatch
+        const archivedProj = {
           id: project._id!,
-          status: project.status,
-          updated_at: project.updatedAt,
+          name: project.name,
+          description: project.description || "",
+          client_id: project.client,
+          owner_id: project.owner,
+          priority: project.priority,
+          status: "Cancelled" as const,
+          deadline: project.deadline,
+          monthly_hour_allocation: project.monthlyHours,
+          tags: project.tags,
+          created_at: project.createdAt || "",
+          updated_at: new Date().toISOString(),
         };
-        dispatch({
-          type: "UPDATE_PROJECT",
-          payload: {
-            ...project,
+        dispatch({ type: "UPDATE_PROJECT", payload: archivedProj });
+        ProjectService.updateProject(project._id!, { status: "Cancelled" }).catch((err) => {
+          console.error("Archive failed:", err);
+          // Revert on failure
+          const prevProj = {
             id: project._id!,
-            status: "Cancelled",
-            updated_at: new Date().toISOString(),
-          },
+            name: project.name,
+            description: project.description || "",
+            client_id: project.client,
+            owner_id: project.owner,
+            priority: project.priority,
+            status: project.status,
+            deadline: project.deadline,
+            monthly_hour_allocation: project.monthlyHours,
+            tags: project.tags,
+            created_at: project.createdAt || "",
+            updated_at: project.updatedAt || "",
+          };
+          dispatch({ type: "UPDATE_PROJECT", payload: prevProj });
         });
-        ProjectService.updateProject(project._id!, { status: "Cancelled" })
-          .catch((err) => {
-            console.error("Archive failed:", err);
-            dispatch({
-              type: "UPDATE_PROJECT",
-              payload: {
-                ...project,
-                id: prev.id,
-                status: prev.status,
-                updated_at: prev.updated_at,
-              },
-            });
-          });
         break;
       }
       case "delete": {
@@ -360,32 +367,29 @@ export function Projects() {
   const handleDeleteProject = async () => {
     if (!selectedProject?._id) return;
     const toRemove = selectedProject;
-    // Optimistic delete
-    dispatch({ type: "DELETE_PROJECT", payload: { id: toRemove._id } });
+    // Optimistic delete: remove from context
+    dispatch({ type: "SET_PROJECTS", payload: state.projects.filter((p) => p.id !== toRemove._id) });
     setShowDeleteModal(false);
     setSelectedProject(null);
     try {
       await ProjectService.deleteProject(toRemove._id);
     } catch (error) {
       console.error("Failed to delete project:", error);
-      // Revert on failure
-      dispatch({
-        type: "ADD_PROJECT",
-        payload: {
-          id: toRemove._id,
-          name: toRemove.name,
-          description: toRemove.description || "",
-          client_id: toRemove.client || "",
-          owner_id: toRemove.owner || "",
-          priority: toRemove.priority,
-          status: toRemove.status,
-          deadline: toRemove.deadline,
-          monthly_hour_allocation: toRemove.monthlyHours || 0,
-          tags: toRemove.tags || [],
-          created_at: toRemove.createdAt || "",
-          updated_at: toRemove.updatedAt || "",
-        },
-      });
+      // Revert on failure: restore list
+      dispatch({ type: "SET_PROJECTS", payload: [...state.projects, {
+        id: toRemove._id!,
+        name: toRemove.name,
+        description: toRemove.description || "",
+        client_id: toRemove.client || "",
+        owner_id: toRemove.owner || "",
+        priority: toRemove.priority,
+        status: toRemove.status,
+        deadline: toRemove.deadline,
+        monthly_hour_allocation: toRemove.monthlyHours || 0,
+        tags: toRemove.tags || [],
+        created_at: toRemove.createdAt || "",
+        updated_at: toRemove.updatedAt || "",
+      } ] });
     }
   };
 
