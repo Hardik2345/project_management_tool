@@ -1,12 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useApp } from "../../contexts/AppContext";
 import TaskService from "../../services/taskService";
+import { ApiTask } from "../../types";
 import {
   X,
-  Calendar,
-  User,
-  Clock,
-  Flag,
   Tag,
   Trash2,
   Save,
@@ -42,20 +39,28 @@ export function TaskModal({
   const project = task
     ? state.projects.find((p) => p.id === task.project_id)
     : null;
-  const assignee = task
-    ? state.profiles.find((u) => u.id === task.assignee_id)
-    : null;
 
-  const [formData, setFormData] = useState({
+  type FormData = {
+    title: string;
+    description: string;
+    status: ApiTask["status"];
+    priority: ApiTask["priority"];
+    project_id: string;
+    assignee_id: string;
+    due_date: string;
+    estimated_hours: number;
+    tags: string[];
+  };
+  const [formData, setFormData] = useState<FormData>({
     title: "",
     description: "",
-    status: "backlog" as const,
-    priority: "medium" as const,
+    status: "backlog",
+    priority: "medium",
     project_id: "",
     assignee_id: "",
     due_date: "",
     estimated_hours: 1,
-    tags: [] as string[],
+    tags: [],
   });
 
   // Time tracking data
@@ -85,13 +90,13 @@ export function TaskModal({
   }, [task, project]);
 
   // Close modal on escape key
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) {
         handleClose();
       }
     };
-
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen]);
@@ -111,7 +116,10 @@ export function TaskModal({
 
   if (!isOpen || !task) return null;
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = <K extends keyof FormData>(
+    field: K,
+    value: FormData[K]
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setHasChanges(true);
   };
@@ -135,16 +143,39 @@ export function TaskModal({
 
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      const updatedTask = {
-        ...task,
-        ...formData,
-        due_date: formData.due_date
+      // Call API to update task
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        status: formData.status,
+        priority: formData.priority,
+        project: formData.project_id,
+        assignedTo: formData.assignee_id,
+        estimatedHours: formData.estimated_hours,
+        dueDate: formData.due_date
           ? new Date(formData.due_date).toISOString()
           : undefined,
-        updated_at: new Date().toISOString(),
+      };
+      const res = await TaskService.updateTask(task.id, payload);
+      const updatedApiTask = res.data?.task;
+      if (!updatedApiTask) throw new Error("Failed to update task");
+
+      // Map API response to context Task shape
+      const updatedContextTask = {
+        id: updatedApiTask._id ?? task.id,
+        title: updatedApiTask.title,
+        description: updatedApiTask.description || "",
+        project_id: updatedApiTask.project,
+        assignee_id: updatedApiTask.assignedTo,
+        priority: updatedApiTask.priority,
+        status: updatedApiTask.status,
+        estimated_hours: updatedApiTask.estimatedHours || 0,
+        due_date: updatedApiTask.dueDate,
+        created_at: updatedApiTask.createdAt || task.created_at,
+        updated_at: updatedApiTask.updatedAt || new Date().toISOString(),
+        assignee: task.assignee,
+        project: task.project,
+        subtasks: task.subtasks,
       };
 
       // Update project tags if they changed
@@ -160,7 +191,7 @@ export function TaskModal({
         dispatch({ type: "UPDATE_PROJECT", payload: updatedProject });
       }
 
-      dispatch({ type: "UPDATE_TASK", payload: updatedTask });
+      dispatch({ type: "UPDATE_TASK", payload: updatedContextTask });
       setHasChanges(false);
 
       // Show success feedback
