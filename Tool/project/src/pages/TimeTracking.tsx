@@ -455,7 +455,7 @@ export function TimeTracking() {
 
   // Get project tasks for timer form
   const projectTasks = timerForm.projectId
-    ? state.tasks.filter((task) => task.project_id._id === timerForm.projectId)
+    ? state.tasks.filter((task) => task.project_id === timerForm.projectId)
     : [];
   // console.log("state.tasks", state.tasks);
 
