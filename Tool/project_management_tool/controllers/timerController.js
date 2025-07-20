@@ -35,7 +35,7 @@ exports.startTimer = catchAsync(async (req, res, next) => {
 
 // Stop timer (set endTime)
 exports.stopTimer = catchAsync(async (req, res, next) => {
-  const { userId, projectId, taskId } = req.body;
+  const { userId, projectId, taskId, description } = req.body;
   if (!userId || !projectId || !taskId) {
     return next(
       new AppError("userId, projectId, and taskId are required", 400)
@@ -56,6 +56,8 @@ exports.stopTimer = catchAsync(async (req, res, next) => {
     );
   }
   timer.endTime = new Date();
+  // Update description if provided
+  if (description) timer.description = description;
   await timer.save();
   res.status(200).json({ status: "success", data: { timer } });
 });
