@@ -67,7 +67,7 @@ export function Tasks() {
         const tasksArray = tasksRes.data?.data || [];
         setAllTasks(tasksArray);
         // Map API tasks to context Task shape
-        const apiTasks = tasksRes.data?.tasks || [];
+        const apiTasks = tasksRes.data?.data || [];
         setAllTasks(apiTasks);
         // Update global context tasks so TaskModal can access any task by id
         const contextTasks = apiTasks.map((t) => ({
