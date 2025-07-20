@@ -356,7 +356,7 @@ export function Tasks() {
             onChange={(e) => setAssigneeFilter(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="all">All Assignees</option>
+            <option value="all">Select Assignee</option>
             {users.map((user) => (
               <option key={user._id} value={user._id}>
                 {user.name}
