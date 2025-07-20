@@ -75,7 +75,7 @@ exports.getTimersForProject = catchAsync(async (req, res, next) => {
 
 // Log manual time (create timer with all fields)
 exports.logManualTime = catchAsync(async (req, res, next) => {
-  const { user, project, task, startTime, endTime } = req.body;
+  const { user, project, task, startTime, endTime, description } = req.body;
   if (!user || !project || !task || !startTime || !endTime) {
     return next(
       new AppError(
@@ -90,6 +90,7 @@ exports.logManualTime = catchAsync(async (req, res, next) => {
     task,
     startTime,
     endTime,
+    description,
   });
   res.status(201).json({ status: "success", data: { timer } });
 });

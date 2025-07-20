@@ -16,6 +16,10 @@ const timerSchema = new mongoose.Schema({
     ref: "Task",
     required: true,
   },
+  description: {
+    type: String,
+    required: true,
+  },
   startTime: {
     type: Date,
     default: null,
