@@ -219,11 +219,12 @@ exports.googleCallback = (req, res, next) => {
   const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
   passport.authenticate("google", (err, user, info) => {
     if (err || !user) {
-      return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
       console.log("Google authentication failed:", err || info);
+      return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
     }
     req.login(user, (err) => {
       if (err) {
+        console.log("Google authentication failed:", err || info);
         return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
       }
       // Session is now established, redirect to dashboard
