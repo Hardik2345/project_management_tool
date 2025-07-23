@@ -84,7 +84,9 @@ passport.use(
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       // Use environment variable for callback URL to avoid redirect_uri_mismatch
-      callbackURL: process.env.GOOGLE_CALLBACK_URL || `http://localhost:3000/api/v1/users/auth/google/return`,
+      callbackURL:
+        process.env.GOOGLE_CALLBACK_URL ||
+        `http://localhost:3000/api/v1/users/auth/google/return`,
       scope: ["profile", "email"],
     },
     async (accessToken, refreshToken, profile, done) => {
@@ -114,9 +116,6 @@ passport.use(
               email: profile.emails[0].value,
               photo: profile.photos[0].value,
             },
-            riotUsername:
-              profile.displayName || `GoogleUser${googleId.slice(-4)}`,
-            riotTag: `GOOG${googleId.slice(-4)}`,
           });
           console.log("New user created:", user.name);
         }
