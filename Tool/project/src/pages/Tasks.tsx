@@ -122,7 +122,7 @@ export function Tasks() {
     const matchesProject =
       projectFilter === "all" ||
       (typeof task.project === "object"
-        ? isValidProject(task.project) && task.project._id === projectFilter
+        ? task.project._id === projectFilter
         : task.project === projectFilter);
     return matchesSearch && matchesStatus && matchesAssignee && matchesProject;
   });
@@ -453,7 +453,7 @@ export function Tasks() {
                   const project =
                     typeof task.project === "object"
                       ? task.project
-                      : projects.find((p) => p._id === task.project._id);
+                      : projects.find((p) => p._id === task.project);
                   const timeEntries = state.timeEntries.filter(
                     (te) => te.task_id === task._id
                   );
