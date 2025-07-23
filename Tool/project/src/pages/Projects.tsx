@@ -166,7 +166,7 @@ export function Projects() {
     e.preventDefault();
     try {
       if (!user) return;
-      // Construct payload
+      // Only include fields defined in the backend project model
       const payload: Partial<ApiProject> & {
         client?: string;
         monthlyHours?: number;
@@ -197,23 +197,27 @@ export function Projects() {
         monthlyHours: newProject.monthly_hour_allocation || undefined,
         tags: newProject.tags.length > 0 ? newProject.tags : undefined,
       };
-      // Optimistic UI: add temporary project
-      const tempId = Date.now().toString();
-      const tempProjectCtx = {
-        id: tempId,
-        name: newProject.name,
-        description: newProject.description,
-        client_id: newProject.client_id || "",
-        owner_id: newProject.owner_id || user._id || "",
-        priority: newProject.priority,
-        status: newProject.status as any,
-        deadline: newProject.deadline,
-        monthly_hour_allocation: newProject.monthly_hour_allocation,
-        tags: newProject.tags,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      dispatch({ type: "ADD_PROJECT", payload: tempProjectCtx });
+      const res = await ProjectService.createProject(payload);
+      console.log("Created project:", res);
+      const createdApi = res.data?.project;
+      if (createdApi) {
+        // Optimistically add to context
+        const ctxProject = {
+          id: createdApi._id || "",
+          name: createdApi.name,
+          description: createdApi.description || "",
+          client_id: createdApi.client,
+          owner_id: createdApi.owner,
+          priority: createdApi.priority,
+          status: createdApi.status,
+          deadline: createdApi.deadline || "",
+          monthly_hour_allocation: createdApi.monthlyHours || 0,
+          tags: createdApi.tags || [],
+          created_at: createdApi.createdAt || new Date().toISOString(),
+          updated_at: createdApi.updatedAt || new Date().toISOString(),
+        };
+        dispatch({ type: "ADD_PROJECT", payload: ctxProject });
+      }
       setShowCreateModal(false);
       setNewProject({
         name: "",
@@ -226,31 +230,9 @@ export function Projects() {
         tags: [],
         owner_id: "",
       });
-      const res = await ProjectService.createProject(payload);
-      console.log("Created project:", res);
-      const createdApi = res.data?.project;
-      if (createdApi) {
-        const realProjectCtx = {
-          id: createdApi._id || tempId,
-          name: createdApi.name,
-          description: createdApi.description || "",
-          client_id: createdApi.client,
-          owner_id: createdApi.owner,
-          priority: createdApi.priority,
-          status: createdApi.status,
-          deadline: createdApi.deadline || "",
-          monthly_hour_allocation: createdApi.monthlyHours || 0,
-          tags: createdApi.tags || [],
-          created_at: createdApi.createdAt || tempProjectCtx.created_at,
-          updated_at: createdApi.updatedAt || tempProjectCtx.updated_at,
-        };
-        // Replace temporary project with real one
-        dispatch({ type: "UPDATE_PROJECT", payload: realProjectCtx });
-      }
+      setNewTag("");
     } catch (error) {
       console.error("Error creating project:", error);
-      // Rollback on failure: remove temp project
-      dispatch({ type: "SET_PROJECTS", payload: state.projects.filter(p => p.id !== tempId) });
     }
   };
 
