@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useApp } from '../contexts/AppContext';
-import { ProjectService } from '../services/projectService';
-import { ArrowLeft, Save, X, Tag, AlertTriangle } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { Badge } from '../components/ui/Badge';
-import { format } from 'date-fns';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useApp } from "../contexts/AppContext";
+import { ProjectService } from "../services/projectService";
+import { ArrowLeft, Save, X, Tag, AlertTriangle } from "lucide-react";
+import { Button } from "../components/ui/Button";
+import { Badge } from "../components/ui/Badge";
+import { format } from "date-fns";
 
 export function EditProject() {
   const { id } = useParams<{ id: string }>();
@@ -14,33 +14,42 @@ export function EditProject() {
   const [hasChanges, setHasChanges] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const project = state.projects.find(p => p.id === id);
-  
+  const project = state.projects.find((p) => p.id === id);
+
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    client_id: '',
-    owner_id: '',
-    priority: 'medium' as 'low' | 'medium' | 'high' | 'critical',
-    status: 'not_started' as 'not_started' | 'in_progress' | 'on_hold' | 'completed' | 'cancelled',
-    deadline: '',
+    name: "",
+    description: "",
+    client_id: "",
+    owner_id: "",
+    priority: "medium" as "low" | "medium" | "high" | "critical",
+    status: "not_started" as
+      | "not_started"
+      | "in_progress"
+      | "on_hold"
+      | "completed"
+      | "cancelled",
+    deadline: "",
     monthly_hour_allocation: 40,
     tags: [] as string[],
   });
 
-  const [newTag, setNewTag] = useState('');
+  const [newTag, setNewTag] = useState("");
 
   useEffect(() => {
     if (project) {
-      const projectStatus = project.status.toLowerCase().replace(' ', '_') as typeof formData.status;
+      const projectStatus = project.status
+        .toLowerCase()
+        .replace(" ", "_") as typeof formData.status;
       setFormData({
         name: project.name,
         description: project.description,
-        client_id: project.client_id || '',
+        client_id: project.client_id || "",
         owner_id: project.owner_id,
         priority: project.priority,
         status: projectStatus,
-        deadline: project.deadline ? format(new Date(project.deadline), 'yyyy-MM-dd') : '',
+        deadline: project.deadline
+          ? format(new Date(project.deadline), "yyyy-MM-dd")
+          : "",
         monthly_hour_allocation: project.monthly_hour_allocation,
         tags: project.tags || [],
       });
@@ -51,8 +60,10 @@ export function EditProject() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Project not found</h2>
-          <Button onClick={() => navigate('/projects')} variant="outline">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Project not found
+          </h2>
+          <Button onClick={() => navigate("/projects")} variant="outline">
             Back to Projects
           </Button>
         </div>
@@ -60,25 +71,44 @@ export function EditProject() {
     );
   }
 
-  const handleInputChange = (field: string, value: string | number | string[]) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleInputChange = (
+    field: string,
+    value: string | number | string[]
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
     setHasChanges(true);
   };
 
   const handleAddTag = () => {
     if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
-      handleInputChange('tags', [...formData.tags, newTag.trim()]);
-      setNewTag('');
+      handleInputChange("tags", [...formData.tags, newTag.trim()]);
+      setNewTag("");
     }
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
-    handleInputChange('tags', formData.tags.filter(tag => tag !== tagToRemove));
+    handleInputChange(
+      "tags",
+      formData.tags.filter((tag) => tag !== tagToRemove)
+    );
   };
 
   const handleSave = async () => {
-    if (!id) return;
+    if (!id || !project) return;
     setLoading(true);
+
+    const originalProject = { ...project };
+    const optimisticProject = {
+      ...project,
+      ...formData,
+      deadline: formData.deadline ? new Date(formData.deadline).toISOString() : project.deadline,
+      updated_at: new Date().toISOString(),
+    };
+
+    // Optimistically update the UI
+    dispatch({ type: 'UPDATE_PROJECT', payload: optimisticProject });
+    setHasChanges(false);
+
     try {
       const statusMap = {
         not_started: "Not Started",
@@ -88,7 +118,7 @@ export function EditProject() {
         cancelled: "Cancelled",
       };
 
-      const payload = {
+      const apiPayload = {
         name: formData.name,
         description: formData.description,
         client: formData.client_id,
@@ -100,32 +130,19 @@ export function EditProject() {
         tags: formData.tags,
       };
 
-      const res = await ProjectService.updateProject(id, payload);
-      const updatedProjectFromApi = res.data?.project;
+      // Make the API call
+      await ProjectService.updateProject(id, apiPayload);
+      
+      // On success, we can optionally re-fetch or just trust the optimistic update.
+      // For now, we'll navigate away.
+      navigate('/projects');
 
-      if (updatedProjectFromApi) {
-        const contextProject = {
-          id: updatedProjectFromApi._id,
-          name: updatedProjectFromApi.name,
-          description: updatedProjectFromApi.description,
-          client_id: updatedProjectFromApi.client,
-          owner_id: updatedProjectFromApi.owner,
-          priority: updatedProjectFromApi.priority,
-          status: updatedProjectFromApi.status,
-          deadline: updatedProjectFromApi.deadline,
-          monthly_hour_allocation: updatedProjectFromApi.monthlyHours,
-          tags: updatedProjectFromApi.tags,
-          created_at: updatedProjectFromApi.createdAt,
-          updated_at: updatedProjectFromApi.updatedAt,
-        };
-        dispatch({ type: 'UPDATE_PROJECT', payload: contextProject });
-        setHasChanges(false);
-        navigate('/projects');
-      } else {
-        console.error("Update failed, no project returned from API");
-      }
     } catch (error) {
       console.error('Error updating project:', error);
+      // If the API call fails, roll back the change
+      dispatch({ type: 'UPDATE_PROJECT', payload: originalProject });
+      setHasChanges(true); // Re-enable save button
+      // Optionally: show an error message to the user
     } finally {
       setLoading(false);
     }
@@ -133,17 +150,19 @@ export function EditProject() {
 
   const handleDiscard = () => {
     if (hasChanges) {
-      const confirmed = window.confirm('Are you sure you want to discard your changes?');
+      const confirmed = window.confirm(
+        "Are you sure you want to discard your changes?"
+      );
       if (confirmed) {
-        navigate('/projects');
+        navigate("/projects");
       }
     } else {
-      navigate('/projects');
+      navigate("/projects");
     }
   };
 
-  const client = state.clients.find(c => c.id === formData.client_id);
-  const owner = state.profiles.find(u => u.id === formData.owner_id);
+  const client = state.clients.find((c) => c.id === formData.client_id);
+  const owner = state.profiles.find((u) => u.id === formData.owner_id);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -154,23 +173,21 @@ export function EditProject() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate('/projects')}
+              onClick={() => navigate("/projects")}
               icon={ArrowLeft}
               className="p-2"
             />
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Edit Project</h1>
-              <p className="text-gray-600">Make changes to your project settings</p>
+              <p className="text-gray-600">
+                Make changes to your project settings
+              </p>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-3">
-            <Button
-              variant="outline"
-              onClick={handleDiscard}
-              icon={X}
-            >
-              {hasChanges ? 'Discard Changes' : 'Cancel'}
+            <Button variant="outline" onClick={handleDiscard} icon={X}>
+              {hasChanges ? "Discard Changes" : "Cancel"}
             </Button>
             <Button
               onClick={handleSave}
@@ -188,8 +205,10 @@ export function EditProject() {
           <div className="p-6 space-y-6">
             {/* Basic Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
-              
+              <h3 className="text-lg font-semibold text-gray-900">
+                Basic Information
+              </h3>
+
               <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -198,7 +217,7 @@ export function EditProject() {
                   <input
                     type="text"
                     value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Enter project name"
                   />
@@ -210,7 +229,9 @@ export function EditProject() {
                   </label>
                   <textarea
                     value={formData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("description", e.target.value)
+                    }
                     rows={4}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Describe your project"
@@ -221,8 +242,10 @@ export function EditProject() {
 
             {/* Project Settings */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900">Project Settings</h3>
-              
+              <h3 className="text-lg font-semibold text-gray-900">
+                Project Settings
+              </h3>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -230,7 +253,9 @@ export function EditProject() {
                   </label>
                   <select
                     value={formData.client_id}
-                    onChange={(e) => handleInputChange('client_id', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("client_id", e.target.value)
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">No client assigned</option>
@@ -248,14 +273,18 @@ export function EditProject() {
                   </label>
                   <select
                     value={formData.owner_id}
-                    onChange={(e) => handleInputChange('owner_id', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("owner_id", e.target.value)
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    {state.profiles.filter(u => u.role !== 'client').map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.name}
-                      </option>
-                    ))}
+                    {state.profiles
+                      .filter((u) => u.role !== "client")
+                      .map((user) => (
+                        <option key={user.id} value={user.id}>
+                          {user.name}
+                        </option>
+                      ))}
                   </select>
                 </div>
 
@@ -265,7 +294,9 @@ export function EditProject() {
                   </label>
                   <select
                     value={formData.priority}
-                    onChange={(e) => handleInputChange('priority', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("priority", e.target.value)
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="low">Low</option>
@@ -281,7 +312,9 @@ export function EditProject() {
                   </label>
                   <select
                     value={formData.status}
-                    onChange={(e) => handleInputChange('status', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("status", e.target.value)
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="not_started">Not Started</option>
@@ -299,7 +332,9 @@ export function EditProject() {
                   <input
                     type="date"
                     value={formData.deadline}
-                    onChange={(e) => handleInputChange('deadline', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("deadline", e.target.value)
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -312,7 +347,12 @@ export function EditProject() {
                     type="number"
                     min="1"
                     value={formData.monthly_hour_allocation}
-                    onChange={(e) => handleInputChange('monthly_hour_allocation', parseInt(e.target.value))}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "monthly_hour_allocation",
+                        parseInt(e.target.value)
+                      )
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -322,7 +362,7 @@ export function EditProject() {
             {/* Tags */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900">Tags</h3>
-              
+
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-2">
                   {formData.tags.map((tag, index) => (
@@ -342,13 +382,13 @@ export function EditProject() {
                     </Badge>
                   ))}
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <input
                     type="text"
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                    onKeyPress={(e) => e.key === "Enter" && handleAddTag()}
                     placeholder="Add a tag"
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
@@ -368,9 +408,10 @@ export function EditProject() {
           <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-lg">
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-500">
-                Last updated: {format(new Date(project.updated_at), 'MMM d, yyyy at h:mm a')}
+                Last updated:{" "}
+                {format(new Date(project.updated_at), "MMM d, yyyy at h:mm a")}
               </div>
-              
+
               {hasChanges && (
                 <div className="flex items-center space-x-2 text-sm text-amber-600">
                   <AlertTriangle className="w-4 h-4" />

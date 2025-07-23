@@ -110,22 +110,33 @@ export function Projects() {
   useEffect(() => {
     // If we already have data in global state, use it
     if (state.profiles.length > 0) {
-      setOwners(state.profiles.filter(p => p.role !== "client").map(p => ({
-        _id: p.id,
-        name: p.name,
-        email: p.email,
-        role: p.role === "project_manager" ? "manager" : p.role === "team_member" ? "team member" : p.role as "admin" | "manager" | "team member"
-      })));
+      setOwners(
+        state.profiles
+          .filter((p) => p.role !== "client")
+          .map((p) => ({
+            _id: p.id,
+            name: p.name,
+            email: p.email,
+            role:
+              p.role === "project_manager"
+                ? "manager"
+                : p.role === "team_member"
+                ? "team member"
+                : (p.role as "admin" | "manager" | "team member"),
+          }))
+      );
     }
     if (state.clients.length > 0) {
-      setClients(state.clients.map(c => ({
-        _id: c.id,
-        name: c.name,
-        email: c.email,
-        company: c.company
-      })));
+      setClients(
+        state.clients.map((c) => ({
+          _id: c.id,
+          name: c.name,
+          email: c.email,
+          company: c.company,
+        }))
+      );
     }
-    
+
     // Only fetch if global state is empty
     if (state.profiles.length === 0 || state.clients.length === 0) {
       async function fetchOwnersClients() {
@@ -133,11 +144,14 @@ export function Projects() {
           if (state.profiles.length === 0) {
             const usersRes = await UserService.getAllUsers();
             const allUsers = usersRes.data?.data || usersRes.data?.users || [];
-            setOwners((allUsers as ApiUser[]).filter((u) => u.role !== "client"));
+            setOwners(
+              (allUsers as ApiUser[]).filter((u) => u.role !== "client")
+            );
           }
           if (state.clients.length === 0) {
             const clientsRes = await ClientService.getAllClients();
-            const allClients = clientsRes.data?.data || clientsRes.data?.clients || [];
+            const allClients =
+              clientsRes.data?.data || clientsRes.data?.clients || [];
             setClients(allClients as ApiClient[]);
           }
         } catch (err) {
@@ -251,7 +265,12 @@ export function Projects() {
           client_id: project.client,
           owner_id: project.owner,
           priority: project.priority,
-          status: project.status as "Not Started" | "In Progress" | "On Hold" | "Completed" | "Cancelled",
+          status: project.status as
+            | "Not Started"
+            | "In Progress"
+            | "On Hold"
+            | "Completed"
+            | "Cancelled",
           deadline: project.deadline || "",
           monthly_hour_allocation: project.monthlyHours,
           tags: project.tags,
@@ -263,9 +282,13 @@ export function Projects() {
       }
       case "archive": {
         // Optimistically update status in context
-        const existingCtx = state.projects.find(p => p.id === project._id);
+        const existingCtx = state.projects.find((p) => p.id === project._id);
         if (existingCtx) {
-          const updatedCtx = { ...existingCtx, status: "Cancelled" as const, updated_at: new Date().toISOString() };
+          const updatedCtx = {
+            ...existingCtx,
+            status: "Cancelled" as const,
+            updated_at: new Date().toISOString(),
+          };
           dispatch({ type: "UPDATE_PROJECT", payload: updatedCtx });
         }
         break;
@@ -283,7 +306,10 @@ export function Projects() {
       try {
         await ProjectService.deleteProject(selectedProject._id);
         // Remove from context
-        dispatch({ type: "SET_PROJECTS", payload: state.projects.filter(p => p.id !== selectedProject._id) });
+        dispatch({
+          type: "SET_PROJECTS",
+          payload: state.projects.filter((p) => p.id !== selectedProject._id),
+        });
       } catch (error) {
         console.error("Failed to delete project:", error);
       } finally {
