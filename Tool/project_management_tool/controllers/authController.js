@@ -220,6 +220,7 @@ exports.googleCallback = (req, res, next) => {
   passport.authenticate("google", (err, user, info) => {
     if (err || !user) {
       return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
+      console.log("Google authentication failed:", err || info);
     }
     req.login(user, (err) => {
       if (err) {
