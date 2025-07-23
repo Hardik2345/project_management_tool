@@ -237,6 +237,8 @@ export function Projects() {
   };
 
   const handleCardClick = (projectId: string, event: React.MouseEvent) => {
+    // Prevent team members from navigating to edit
+    if (user?.role === "team member") return;
     // Prevent navigation if clicking on the dropdown or its trigger
     const target = event.target as HTMLElement;
     if (
@@ -481,9 +483,11 @@ export function Projects() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
-        <Button onClick={() => setShowCreateModal(true)} icon={Plus}>
-          New Project
-        </Button>
+        {user?.role !== "team member" && (
+          <Button onClick={() => setShowCreateModal(true)} icon={Plus}>
+            New Project
+          </Button>
+        )}
       </div>
 
       {/* Filters */}

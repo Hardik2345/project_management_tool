@@ -199,6 +199,8 @@ export function Tasks() {
   };
 
   const handleTaskClick = (taskId: string, event: React.MouseEvent) => {
+    // Prevent team members from opening task details
+    if (user?.role === "team member") return;
     // Prevent opening modal if clicking on interactive elements
     const target = event.target as HTMLElement;
     if (
@@ -318,9 +320,13 @@ export function Tasks() {
               <List className="w-4 h-4" />
             </button>
           </div>
-          <Button onClick={() => setShowCreateModal(true)} icon={Plus}>
-            New Task
-          </Button>
+          <div className="flex items-center justify-between">
+            {user?.role !== "team member" && (
+              <Button onClick={() => setShowCreateModal(true)} icon={Plus}>
+                New Task
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 

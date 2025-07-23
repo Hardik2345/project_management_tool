@@ -101,12 +101,14 @@ export function EditProject() {
     const optimisticProject = {
       ...project,
       ...formData,
-      deadline: formData.deadline ? new Date(formData.deadline).toISOString() : project.deadline,
+      deadline: formData.deadline
+        ? new Date(formData.deadline).toISOString()
+        : project.deadline,
       updated_at: new Date().toISOString(),
     };
 
     // Optimistically update the UI
-    dispatch({ type: 'UPDATE_PROJECT', payload: optimisticProject });
+    dispatch({ type: "UPDATE_PROJECT", payload: optimisticProject });
     setHasChanges(false);
 
     try {
@@ -125,22 +127,23 @@ export function EditProject() {
         owner: formData.owner_id,
         priority: formData.priority,
         status: statusMap[formData.status],
-        deadline: formData.deadline ? new Date(formData.deadline).toISOString() : undefined,
+        deadline: formData.deadline
+          ? new Date(formData.deadline).toISOString()
+          : undefined,
         monthlyHours: formData.monthly_hour_allocation,
         tags: formData.tags,
       };
 
       // Make the API call
       await ProjectService.updateProject(id, apiPayload);
-      
+
       // On success, we can optionally re-fetch or just trust the optimistic update.
       // For now, we'll navigate away.
-      navigate('/projects');
-
+      navigate("/projects");
     } catch (error) {
-      console.error('Error updating project:', error);
+      console.error("Error updating project:", error);
       // If the API call fails, roll back the change
-      dispatch({ type: 'UPDATE_PROJECT', payload: originalProject });
+      dispatch({ type: "UPDATE_PROJECT", payload: originalProject });
       setHasChanges(true); // Re-enable save button
       // Optionally: show an error message to the user
     } finally {
