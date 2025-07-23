@@ -69,7 +69,9 @@ export function Tasks() {
         ]);
         // Populate users and projects for dropdowns
         setUsers(usersRes.data?.data || []);
+        console.log("apiProjects:", apiProjects);
         setProjects(apiProjects.filter(Boolean));
+        console.log("Fetched projects:");
       } catch (error) {
         console.error("Failed to fetch users or projects:", error);
       }
