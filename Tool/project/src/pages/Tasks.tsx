@@ -108,6 +108,7 @@ export function Tasks() {
       ? allTasks.filter((t) => t.assignedTo._id === user?._id)
       : allTasks;
   const filteredTasks = baseTasks.filter(isValidTask).filter((task) => {
+    console.log("Filtering task:", task);
     const matchesSearch =
       task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ??

@@ -253,7 +253,7 @@ export function Header() {
             )}
           </div>
         ) : (
-          <Button onClick={() => navigate('/login')} variant="outline">
+          <Button onClick={() => navigate("/login")} variant="outline">
             Login
           </Button>
         )}
