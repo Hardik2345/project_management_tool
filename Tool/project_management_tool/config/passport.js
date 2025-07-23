@@ -83,7 +83,8 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: `http://localhost:3000/api/v1/users/auth/google/return`,
+      // Use environment variable for callback URL to avoid redirect_uri_mismatch
+      callbackURL: process.env.GOOGLE_CALLBACK_URL || `http://localhost:3000/api/v1/users/auth/google/return`,
       scope: ["profile", "email"],
     },
     async (accessToken, refreshToken, profile, done) => {
