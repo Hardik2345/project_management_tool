@@ -451,7 +451,7 @@ export function Tasks() {
                   const project =
                     typeof task.project === "object"
                       ? task.project
-                      : projects.find((p) => p._id === task.project);
+                      : projects.find((p) => p._id === task.project._id);
                   const timeEntries = state.timeEntries.filter(
                     (te) => te.task_id === task._id
                   );
