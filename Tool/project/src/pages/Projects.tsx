@@ -209,21 +209,21 @@ export function Projects() {
             updated_at: created.updatedAt || new Date().toISOString(),
           },
         });
-        // Reset form and close modal
-        setShowCreateModal(false);
-        setNewProject({
-          name: "",
-          description: "",
-          client_id: "",
-          priority: "medium",
-          status: "not_started",
-          deadline: "",
-          monthly_hour_allocation: 40,
-          tags: [],
-          owner_id: "",
-        });
-        setNewTag("");
       }
+      // Close modal and reset form
+      setShowCreateModal(false);
+      setNewProject({
+        name: "",
+        description: "",
+        client_id: "",
+        priority: "medium",
+        status: "not_started",
+        deadline: "",
+        monthly_hour_allocation: 40,
+        tags: [],
+        owner_id: "",
+      });
+      setNewTag("");
     } catch (error) {
       console.error("Error creating project:", error);
     }
