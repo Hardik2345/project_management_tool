@@ -217,6 +217,7 @@ export function Projects() {
           updated_at: createdApi.updatedAt || new Date().toISOString(),
         };
         dispatch({ type: "ADD_PROJECT", payload: ctxProject });
+        console.log("Project added to context:", res);
       }
       setShowCreateModal(false);
       setNewProject({
