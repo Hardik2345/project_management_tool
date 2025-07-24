@@ -199,7 +199,7 @@ export function Projects() {
       };
       const res = await ProjectService.createProject(payload);
       console.log("Created project:", res);
-      const createdApi = res.data?.project;
+      const createdApi = res.data?.data;
       if (createdApi) {
         // Optimistically add to context
         const ctxProject = {
@@ -217,7 +217,6 @@ export function Projects() {
           updated_at: createdApi.updatedAt || new Date().toISOString(),
         };
         dispatch({ type: "ADD_PROJECT", payload: ctxProject });
-        console.log("Project added to context:", res);
       }
       setShowCreateModal(false);
       setNewProject({
