@@ -67,8 +67,7 @@ export function ClientManagement() {
         company: newClient.company,
         type: newClient.type,
       });
-      console.log("Created client:", res);
-      const created = res.data?.client;
+      const created = res.data?.data;
       if (!created) throw new Error("Failed to create client");
       // Map API client to internal shape
       const client = {
