@@ -171,7 +171,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case "SET_NOTIFICATIONS":
       return { ...state, notifications: action.payload };
     case "ADD_PROJECT":
-      return { ...state, projects: [action.payload, ...state.projects] };
+      return { ...state, projects: [...state.projects, action.payload] };
     case "UPDATE_PROJECT":
       return {
         ...state,
