@@ -164,9 +164,53 @@ export function Projects() {
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
+    // Keep original projects for rollback
+    const original = state.projects;
+    // Build optimistic project
+    const tempId = Date.now().toString();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tempProject: any = {
+      id: tempId,
+      name: newProject.name,
+      description: newProject.description,
+      client_id: newProject.client_id || "",
+      owner_id: newProject.owner_id,
+      priority: newProject.priority,
+      status:
+        newProject.status === "not_started"
+          ? "Not Started"
+          : newProject.status === "in_progress"
+          ? "In Progress"
+          : newProject.status === "on_hold"
+          ? "On Hold"
+          : newProject.status === "completed"
+          ? "Completed"
+          : "Cancelled",
+      deadline: newProject.deadline,
+      monthly_hour_allocation: newProject.monthly_hour_allocation,
+      tags: newProject.tags,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    // Add to UI immediately
+    dispatch({ type: "ADD_PROJECT", payload: tempProject });
+    // Reset form and close modal
+    setShowCreateModal(false);
+    setNewProject({
+      name: "",
+      description: "",
+      client_id: "",
+      priority: "medium",
+      status: "not_started",
+      deadline: "",
+      monthly_hour_allocation: 40,
+      tags: [],
+      owner_id: "",
+    });
+    setNewTag("");
+    // Call backend
     try {
-      if (!user) return;
-      // Only include fields defined in the backend project model
       const payload: Partial<ApiProject> & {
         client?: string;
         monthlyHours?: number;
@@ -187,52 +231,36 @@ export function Projects() {
             ? "On Hold"
             : newProject.status === "completed"
             ? "Completed"
-            : newProject.status === "cancelled"
-            ? "Cancelled"
-            : newProject.status === "retainer"
-            ? "Retainer"
-            : "Not Started",
+            : "Cancelled",
         client: newProject.client_id || undefined,
         owner: newProject.owner_id || undefined,
-        monthlyHours: newProject.monthly_hour_allocation || undefined,
-        tags: newProject.tags.length > 0 ? newProject.tags : undefined,
+        monthlyHours: newProject.monthly_hour_allocation,
+        tags: newProject.tags.length ? newProject.tags : undefined,
       };
       const res = await ProjectService.createProject(payload);
-      console.log("Created project:", res);
-      const createdApi = res.data?.project;
-      if (createdApi) {
-        // Optimistically add to context
-        const ctxProject = {
-          id: createdApi._id || "",
-          name: createdApi.name,
-          description: createdApi.description || "",
-          client_id: createdApi.client,
-          owner_id: createdApi.owner,
-          priority: createdApi.priority,
-          status: createdApi.status,
-          deadline: createdApi.deadline || "",
-          monthly_hour_allocation: createdApi.monthlyHours || 0,
-          tags: createdApi.tags || [],
-          created_at: createdApi.createdAt || new Date().toISOString(),
-          updated_at: createdApi.updatedAt || new Date().toISOString(),
+      const created = res.data?.project;
+      if (created) {
+        const real = {
+          id: created._id || tempId,
+          name: created.name,
+          description: created.description || "",
+          client_id: created.client,
+          owner_id: created.owner,
+          priority: created.priority,
+          status: created.status,
+          deadline: created.deadline || "",
+          monthly_hour_allocation: created.monthlyHours || 0,
+          tags: created.tags || [],
+          created_at: created.createdAt || tempProject.created_at,
+          updated_at: created.updatedAt || tempProject.updated_at,
         };
-        dispatch({ type: "ADD_PROJECT", payload: ctxProject });
+        // Replace temp with real project
+        dispatch({ type: "UPDATE_PROJECT", payload: real });
       }
-      setShowCreateModal(false);
-      setNewProject({
-        name: "",
-        description: "",
-        client_id: "",
-        priority: "medium",
-        status: "not_started",
-        deadline: "",
-        monthly_hour_allocation: 40,
-        tags: [],
-        owner_id: "",
-      });
-      setNewTag("");
     } catch (error) {
-      console.error("Error creating project:", error);
+      console.error("Create project failed, rolling back:", error);
+      // Rollback UI
+      dispatch({ type: "SET_PROJECTS", payload: original });
     }
   };
 
