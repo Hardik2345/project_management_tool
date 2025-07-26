@@ -416,8 +416,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  // Fetch current user's full profile
+  // Fetch current user's full profile (reset when signed out)
   useEffect(() => {
+    if (!user) {
+      setCurrentUserProfile(null);
+      return;
+    }
+    // load when user exists
     async function loadCurrentUser() {
       try {
         const res = await UserService.getMe();
