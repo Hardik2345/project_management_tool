@@ -107,7 +107,7 @@ export function Tasks() {
     statusFilter === "all" &&
     assigneeFilter === "all" &&
     projectFilter === "all"
-      ? allTasks.filter((t) => t.assignedTo._id === user?._id)
+      ? allTasks
       : allTasks;
   const filteredTasks = baseTasks.filter(isValidTask).filter((task) => {
     console.log("Filtering task:", task);
