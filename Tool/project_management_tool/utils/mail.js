@@ -40,7 +40,6 @@ const taskDueToday = async (assignedTo) => {
     const tasks = await Task.find({
       assignedTo,
       dueDate: {
-        $gte: today,
         $lt: tomorrow
       }
     });
