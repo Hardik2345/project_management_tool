@@ -80,9 +80,8 @@ export function Header() {
         } catch (error) {
           console.error("Logout failed", error);
         }
-        // Clear app context and redirect
+        // Clear app context (login button will appear)
         dispatch({ type: "SET_CURRENT_USER", payload: null });
-        navigate("/login");
         break;
     }
   };
