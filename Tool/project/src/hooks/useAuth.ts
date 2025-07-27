@@ -35,7 +35,7 @@ export function useAuth() {
       })
       .finally(() => setLoading(false));
     // console.log("useAuth mounted, checking session", user);
-  }, []);
+  }, [user]);
 
   // Login
   const signIn = async (email: string, password: string) => {
