@@ -1,4 +1,3 @@
-import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -12,9 +11,12 @@ import {
   Building,
   Calendar,
 } from 'lucide-react';
+import { useApp } from '../../contexts/AppContext';
 
 export function Sidebar() {
   const location = useLocation();
+  const { state: { currentUser } } = useApp();
+  const disabled = !currentUser;
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -40,7 +42,7 @@ export function Sidebar() {
             <span className="text-xl font-bold text-gray-900">Tech It!</span>
           </div>
         </div>
-        <nav className="flex flex-1 flex-col">
+        <nav className={`flex flex-1 flex-col ${disabled ? 'pointer-events-none opacity-50' : ''}`}>
           <ul role="list" className="flex flex-1 flex-col gap-y-7">
             <li>
               <ul role="list" className="-mx-2 space-y-1">
