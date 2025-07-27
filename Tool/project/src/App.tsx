@@ -1,3 +1,4 @@
+import React from "react";
 import { useAuth } from "./hooks/useAuth";
 import { useApp } from "./contexts/AppContext";
 import LoadingScreen from "./components/ui/LoadingScreen";
@@ -19,26 +20,17 @@ import { Meetings } from "./pages/Meetings";
 import Login from "./pages/Login";
 
 function App() {
+  const { loading } = useAuth();
   return (
     <AppProvider>
-      <AppInitializer />
+      <Router>
+        {loading ? (
+          <LoadingScreen />
+        ) : (
+          <AppContent />
+        )}
+      </Router>
     </AppProvider>
-  );
-}
-
-// Holds user on loading screen until auth + initial app data finish loading
-function AppInitializer() {
-  const { loading: authLoading } = useAuth();
-  const {
-    state: { isLoading },
-  } = useApp();
-  if (authLoading || isLoading) {
-    return <LoadingScreen />;
-  }
-  return (
-    <Router>
-      <AppContent />
-    </Router>
   );
 }
 
