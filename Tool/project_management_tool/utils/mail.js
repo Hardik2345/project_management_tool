@@ -7,8 +7,8 @@ const Task = require('../models/taskModel'); // Adjust the path as necessary
 let transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'hardikparikh19@gmail.com',
-    pass: "lcdnrwxcefptnwox", // Use app password if 2FA is enabled
+    user: 'projects.techit@gmail.com',
+    pass: "Apps@777#", // Use app password if 2FA is enabled
   },
 })
 
