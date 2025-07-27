@@ -10,6 +10,7 @@ process.on("uncaughtException", (err) => {
 
 const app = require("./app");
 const setupSwagger = require("./swagger");
+const { startEmailScheduler } = require("./utils/mail");
 const server = http.createServer(app);
 
 // Initialize Swagger documentation
@@ -45,6 +46,8 @@ mongoose
   })
   .then((con) => {
     console.log("DB connection succesful!");
+    // start the daily email scheduler
+    startEmailScheduler();
   });
 // Add connection monitoring
 mongoose.connection.on("connected", () => {
