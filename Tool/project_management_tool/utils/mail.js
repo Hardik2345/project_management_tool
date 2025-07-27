@@ -109,7 +109,7 @@ function startEmailScheduler() {
         const tableRows = todayRows + tomorrowRows;
         // send the email
         transporter.sendMail({
-          from: 'hardikparikh19@gmail.com',
+          from: 'projects.techit@gmail.com',
           to: email,
           subject: `Daily tasks summary for ${name}`,
           html: `<!DOCTYPE html>
