@@ -76,7 +76,7 @@ const taskDueTomorrow = async (assignedTo) => {
 };
 
 function startEmailScheduler() {
-  cron.schedule('30 19 * * *', async () => {
+  cron.schedule('14 18 * * *', async () => {
     console.log('Running daily email task');
     const users = await members();
     for (const { email, name, id } of users) {
@@ -178,11 +178,11 @@ function startEmailScheduler() {
                 <div class="container">
                   <div class="card-container">
                     <div class="card card-red">
-                      <h2>Overdue Today</h2>
+                      <h1>$${todayTasks.length}</h1>
                       <p>You have ${todayTasks.length} tasks that are overdue today. Please take immediate action.</p>
                     </div>
                     <div class="card card-yellow">
-                      <h2>Due Tomorrow</h2>
+                      <h1>${tomorrowTasks.length}</h1>
                       <p>You have ${tomorrowTasks.length} tasks due tomorrow. Plan ahead to stay on track.</p>
                     </div>
                   </div>
