@@ -10,7 +10,6 @@ export interface ApiUser {
   googleId?: string;
   active?: boolean;
   createdAt?: string;
-  photo?: string;
   updatedAt?: string;
 }
 

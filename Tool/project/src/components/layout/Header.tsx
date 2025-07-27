@@ -14,7 +14,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { Button } from "../ui/Button";
 
 export function Header() {
-  const { state, currentUser } = useApp();
+  const { state, currentUser, dispatch } = useApp();
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -80,7 +80,9 @@ export function Header() {
         } catch (error) {
           console.error("Logout failed", error);
         }
-        // navigate("/login");
+        // Clear app context and redirect
+        dispatch({ type: "SET_CURRENT_USER", payload: null });
+        navigate("/login");
         break;
     }
   };

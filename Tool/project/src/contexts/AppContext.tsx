@@ -119,6 +119,7 @@ interface AppState {
   invoices: Invoice[];
   notifications: Notification[];
   isLoading: boolean;
+  currentUser: Profile | null;
 }
 
 type AppAction =
@@ -139,7 +140,8 @@ type AppAction =
   | { type: "UPDATE_CLIENT"; payload: Client }
   | { type: "DELETE_CLIENT"; payload: string }
   | { type: "ADD_INVOICE"; payload: Invoice }
-  | { type: "MARK_NOTIFICATION_READ"; payload: string };
+  | { type: "MARK_NOTIFICATION_READ"; payload: string }
+  | { type: "SET_CURRENT_USER"; payload: Profile | null };
 
 const initialState: AppState = {
   profiles: [],
@@ -150,6 +152,7 @@ const initialState: AppState = {
   invoices: [],
   notifications: [],
   isLoading: false,
+  currentUser: null,
 };
 
 function appReducer(state: AppState, action: AppAction): AppState {
@@ -213,6 +216,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
           n.id === action.payload ? { ...n, read: true } : n
         ),
       };
+    case "SET_CURRENT_USER":
+      return { ...state, currentUser: action.payload };
     default:
       return state;
   }
@@ -243,8 +248,6 @@ const AppContext = createContext<{
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const { user } = useAuth();
-  const [currentUserProfile, setCurrentUserProfile] =
-    React.useState<Profile | null>(null);
 
   // New: reloadTasksAndMeta function
   const reloadTasksAndMeta = async () => {
@@ -416,19 +419,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  // Fetch current user's full profile (reset when signed out)
+  // Sync currentUser in state when auth user changes
   useEffect(() => {
     if (!user) {
-      setCurrentUserProfile(null);
+      dispatch({ type: "SET_CURRENT_USER", payload: null });
       return;
     }
-    // load when user exists
     async function loadCurrentUser() {
       try {
         const res = await UserService.getMe();
         const u = res.data?.data;
         if (u) {
-          setCurrentUserProfile({
+          const profile: Profile = {
             id: u._id || "",
             name: u.name,
             email: u.email,
@@ -438,12 +440,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 : u.role === "team member"
                 ? "team_member"
                 : "admin",
-            avatar: u.photo || "",
+            avatar: (u as any).photo || "",
             weekly_capacity: 40,
             is_active: u.active ?? true,
             created_at: u.createdAt || "",
             updated_at: u.updatedAt || "",
-          });
+          };
+          dispatch({ type: "SET_CURRENT_USER", payload: profile });
         }
       } catch (err) {
         console.error("Failed to load current user", err);
@@ -457,7 +460,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       value={{
         state,
         dispatch,
-        currentUser: currentUserProfile,
+        currentUser: state.currentUser,
         reloadTasksAndMeta,
         reloadTimeEntries,
       }}
