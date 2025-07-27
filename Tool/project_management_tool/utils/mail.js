@@ -39,6 +39,7 @@ const taskDueToday = async (assignedTo) => {
 
     const tasks = await Task.find({
       assignedTo,
+      status: { $ne: 'done' },
       dueDate: {
         $lt: tomorrow
       }
@@ -62,6 +63,7 @@ const taskDueTomorrow = async (assignedTo) => {
 
     const tasks = await Task.find({
       assignedTo,
+      status: { $ne: 'done' }, // Exclude completed tasks
       dueDate: {
         $gte: tomorrow,
         $lt: dayAfterTomorrow
