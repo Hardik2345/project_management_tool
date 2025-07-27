@@ -80,7 +80,7 @@ export function Header() {
         } catch (error) {
           console.error("Logout failed", error);
         }
-        navigate("/login");
+        // navigate("/login");
         break;
     }
   };
