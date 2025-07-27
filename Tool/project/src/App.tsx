@@ -43,7 +43,7 @@ function AppContent() {
       {!currentUser ? (
         <>
           <Route path="/login" element={<Login />} />
-          {/* <Route path="*" element={<Navigate to="/login" />} /> */}
+          <Route path="/" element={<Navigate to="/login" />} />
         </>
       ) : (
         <>
