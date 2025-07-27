@@ -77,7 +77,7 @@ const taskDueTomorrow = async (assignedTo) => {
 
 function startEmailScheduler() {
   cron.schedule(
-    '27 18 * * *',
+    '36 18 * * *',
     async () => {
       console.log('Running daily email task');
       const users = await members();
