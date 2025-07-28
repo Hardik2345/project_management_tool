@@ -127,6 +127,8 @@ export function Tasks() {
     return matchesSearch && matchesStatus && matchesAssignee && matchesProject;
   });
 
+  console.log("Filtered tasks:", filteredTasks);
+
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -230,7 +232,7 @@ export function Tasks() {
     const assignee = users.find((u) => u._id === task.assignedTo._id);
     const project =
       typeof task.project === "object"
-        ? task.project
+        ? task.project.name
         : projects.find((p) => p._id === task.project);
     const timeEntries = state.timeEntries.filter(
       (te) => te.task_id === task._id
