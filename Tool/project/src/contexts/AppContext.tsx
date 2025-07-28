@@ -330,9 +330,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
           title: t.title,
           description: t.description || "",
           project_id:
-            typeof t.project === "object"
+            typeof t.project === "string"
               ? t.project
               : (t.project as any)?._id || "",
+          project:t.project,
           assignee_id:
             typeof t.assignedTo === "string"
               ? t.assignedTo
