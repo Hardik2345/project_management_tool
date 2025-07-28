@@ -464,6 +464,7 @@ export function Projects() {
   });
 
   console.log("Filtered projects:", filteredProjects);
+  console.log("All clients:", clients);
 
   if (loading) {
     return (
