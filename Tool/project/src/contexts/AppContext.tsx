@@ -347,6 +347,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           project: undefined,
           subtasks: [],
         }));
+        console.log("Mapped tasks:", tasks);
         dispatch({ type: "SET_TASKS", payload: tasks });
       } catch {
         dispatch({ type: "SET_TASKS", payload: [] });
