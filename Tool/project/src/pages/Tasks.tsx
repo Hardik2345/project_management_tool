@@ -274,8 +274,14 @@ export function Tasks() {
             {task.description}
           </p>
 
+          {/* Project Name */}
+          <div className="flex items-center">
+            <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-md font-medium truncate">
+              {project?.name}
+            </span>
+          </div>
+
           <div className="flex items-center justify-between text-xs text-gray-500">
-            <span>{project?.name}</span>
             {task.dueDate && (
               <span className={isOverdue ? "text-red-600 font-medium" : ""}>
                 {format(new Date(task.dueDate), "MMM d")}
