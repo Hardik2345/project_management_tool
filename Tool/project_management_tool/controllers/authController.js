@@ -138,7 +138,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   try {
-    const resetURL = `https://project-management-tool-peach.vercel.app/resetPassword/${resetToken}`;
+    const resetURL = `https://project-management-tool-peach.vercel.app/reset-password/${resetToken}`;
 
     await new Email(user, resetURL).sendPasswordReset();
 
