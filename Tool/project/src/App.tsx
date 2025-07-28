@@ -48,7 +48,7 @@ function AppContent() {
       {!currentUser ? (
         <>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Layout/>} />
+          <Route path="*" element={<Layout/>} />
         </>
       ) : (
         <>
