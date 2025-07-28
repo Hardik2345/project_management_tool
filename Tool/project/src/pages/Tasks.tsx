@@ -18,15 +18,14 @@ import { format } from "date-fns";
 import { UserService } from "../services/userService";
 import { TaskService } from "../services/taskService";
 import { ProjectService } from "../services/projectService";
+import { useAuth } from "../hooks/useAuth";
 
 // Types
 import { ApiTask, ApiUser, ApiProject } from "../types";
 
 export function Tasks() {
-  const {
-    state: { currentUser },
-    dispatch,
-  } = useApp();
+  const { state, dispatch } = useApp(); // removed unused dispatch
+  const { user } = useAuth();
   const [viewMode, setViewMode] = useState<"kanban" | "table">("kanban");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -46,7 +45,7 @@ export function Tasks() {
     dueDate: "",
   });
   // Adapt context tasks to ApiTask shape so downstream UI logic can remain unchanged
-  const allTasks = currentUser.tasks.map((t) => ({
+  const allTasks = state.tasks.map((t) => ({
     _id: t.id,
     title: t.title,
     description: t.description,
@@ -63,7 +62,7 @@ export function Tasks() {
   useEffect(() => {
     const fetchMeta = async () => {
       try {
-        if (!currentUser || !currentUser._id) return;
+        if (!user || !user._id) return;
         const [usersRes, apiProjects] = await Promise.all([
           UserService.getAllUsers(),
           ProjectService.getAllProjects(),
@@ -78,7 +77,7 @@ export function Tasks() {
       }
     };
     fetchMeta();
-  }, [currentUser]);
+  }, [user]);
 
   // Type guard for valid tasks
   function isValidTask(task: unknown): task is ApiTask {
@@ -187,7 +186,7 @@ export function Tasks() {
     newStatus: ApiTask["status"]
   ) => {
     // Optimistically dispatch status update to context
-    const existing = currentUser.tasks.find((t) => t.id === taskId);
+    const existing = state.tasks.find((t) => t.id === taskId);
     if (existing) {
       dispatch({
         type: "UPDATE_TASK",
@@ -204,7 +203,7 @@ export function Tasks() {
 
   const handleTaskClick = (taskId: string, event: React.MouseEvent) => {
     // Prevent team members from opening task details
-    if (currentUser?.role === "team member") return;
+    if (user?.role === "team member") return;
     // Prevent opening modal if clicking on interactive elements
     const target = event.target as HTMLElement;
     if (
@@ -233,7 +232,7 @@ export function Tasks() {
       typeof task.project === "object"
         ? task.project
         : projects.find((p) => p._id === task.project);
-    const timeEntries = currentUser.timeEntries.filter(
+    const timeEntries = state.timeEntries.filter(
       (te) => te.task_id === task._id
     );
     const totalTimeSpent =
@@ -325,8 +324,7 @@ export function Tasks() {
             </button>
           </div>
           <div className="flex items-center justify-between">
-            {/* Only admins, project managers, and team members may create tasks */}
-            {currentUser?.role !== "client" && (
+            {user?.role !== "client" && (
               <Button onClick={() => setShowCreateModal(true)} icon={Plus}>
                 New Task
               </Button>
@@ -456,7 +454,7 @@ export function Tasks() {
                     typeof task.project === "object"
                       ? task.project
                       : projects.find((p) => p._id === task.project);
-                  const timeEntries = currentUser.timeEntries.filter(
+                  const timeEntries = state.timeEntries.filter(
                     (te) => te.task_id === task._id
                   );
                   const totalTimeSpent =
@@ -771,7 +769,7 @@ export function Tasks() {
         taskId={selectedTaskId}
         onDelete={(deletedId: string) => {
           // Optimistically remove the deleted task from context state
-          const remaining = currentUser.tasks.filter((t) => t.id !== deletedId);
+          const remaining = state.tasks.filter((t) => t.id !== deletedId);
           dispatch({ type: "SET_TASKS", payload: remaining });
         }}
       />
