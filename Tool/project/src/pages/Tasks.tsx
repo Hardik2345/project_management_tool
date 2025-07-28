@@ -277,7 +277,7 @@ export function Tasks() {
           {/* Project Name */}
           <div className="flex items-center">
             <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-md font-medium truncate">
-              {project?.name}
+              {project}
             </span>
           </div>
 
