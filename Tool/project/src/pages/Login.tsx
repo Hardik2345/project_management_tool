@@ -71,21 +71,6 @@ export default function Login() {
             Forgot password?
           </Link>
         </div>
-        {/* Or Google OAuth */}
-        <div className="text-center mt-4">
-          <p className="text-sm text-gray-500 mb-2">or</p>
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={() => {
-              window.location.href =
-                "https://project-management-tool-2ws0.onrender.com/api/v1/users/auth/google";
-            }}
-          >
-            Sign in with Google
-          </Button>
-        </div>
       </form>
     </div>
   );
