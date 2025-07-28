@@ -53,7 +53,7 @@ export function Tasks() {
     priority: t.priority,
     dueDate: t.due_date,
     assignedTo: { _id: t.assignee_id },
-    project: { _id: t.project_id },
+    project: { _id: t.project_id, name: t.project_id?.name || "" },
     estimatedHours: t.estimated_hours,
   })) as unknown as ApiTask[];
   const [users, setUsers] = useState<ApiUser[]>([]);
