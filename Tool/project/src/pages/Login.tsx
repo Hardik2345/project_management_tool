@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { Button } from "../components/ui/Button";
+import { Link } from "react-router-dom";
 
 export default function Login() {
   const { signIn, loading, user } = useAuth();
@@ -62,6 +63,14 @@ export default function Login() {
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Logging in..." : "Login"}
         </Button>
+        <div className="text-right mt-2">
+          <Link
+            to="/forgot-password"
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
         {/* Or Google OAuth */}
         <div className="text-center mt-4">
           <p className="text-sm text-gray-500 mb-2">or</p>

@@ -18,6 +18,8 @@ import { Settings } from "./pages/Settings";
 import { ClientManagement } from "./pages/ClientManagement";
 import { Meetings } from "./pages/Meetings";
 import Login from "./pages/Login";
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 function App() {
   const { loading } = useAuth();
@@ -40,6 +42,9 @@ function AppContent() {
   } = useApp();
   return (
     <Routes>
+      {/* public routes */}
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password/:token" element={<ResetPassword />} />
       {!currentUser ? (
         <>
           <Route path="/login" element={<Login />} />

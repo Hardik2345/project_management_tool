@@ -23,12 +23,11 @@ module.exports = class Email {
     }
 
     return nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
+      service: "Gmail",
       secure: false, // true for 465, false for other ports
       auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD,
+        user: "hardikparikh19@gmail.com",
+        pass: process.env.APP_PASSWORD, // Use app password if 2FA is enabled
       },
       // Add timeout and connection settings
       connectionTimeout: 10000, // 10 seconds
@@ -40,11 +39,11 @@ module.exports = class Email {
   // Send the actual email
   async send(template, subject) {
     try {
-      // Check if email is enabled
-      if (process.env.EMAIL_ENABLED === 'false') {
-        console.log(`📧 Email sending disabled. Would send: ${subject} to ${this.to}`);
-        return;
-      }
+      // // Check if email is enabled
+      // if (process.env.EMAIL_ENABLED === 'false') {
+      //   console.log(`📧 Email sending disabled. Would send: ${subject} to ${this.to}`);
+      //   return;
+      // }
 
       // 1) Render HTML based on a pug template
       const html = pug.renderFile(`${__dirname}/../views/email/${template}.pug`, {
@@ -55,7 +54,7 @@ module.exports = class Email {
 
       // 2) Define email options
       const mailOptions = {
-        from: this.from,
+        from: "hardikparikh19@gmail.com",
         to: this.to,
         subject,
         html,
