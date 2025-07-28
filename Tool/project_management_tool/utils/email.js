@@ -26,7 +26,7 @@ module.exports = class Email {
       service: "gmail",
       auth: {
         user: "hardikparikh19@gmail.com",
-        pass: process.env.APP_PASSWORD, // Use app password if 2FA is enabled
+        pass: "lcdnrwxcefptnwox", // Use app password if 2FA is enabled
       },
       // Add timeout and connection settings
       connectionTimeout: 10000, // 10 seconds
