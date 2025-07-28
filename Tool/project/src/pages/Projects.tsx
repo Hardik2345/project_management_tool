@@ -463,6 +463,8 @@ export function Projects() {
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
+  console.log("Filtered projects:", filteredProjects);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96 text-xl text-gray-500">
