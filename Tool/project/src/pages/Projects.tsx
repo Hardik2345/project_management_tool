@@ -131,6 +131,7 @@ export function Projects() {
         state.clients.map((c) => ({
           _id: c.id,
           name: c.name,
+          type: c.type,
           email: c.email,
           company: c.company,
         }))
@@ -568,9 +569,17 @@ export function Projects() {
                     {project.description}
                   </p>
                   {client && (
-                    <p className="text-sm text-gray-500 mb-2">
-                      Client: {client.company}
-                    </p>
+                    <div className="mb-2">
+                      <p className="text-sm text-gray-500 mb-1">
+                        Client: {client.company}
+                      </p>
+                      <Badge
+                        variant={client.type === "Retainer" ? "info" : "secondary"}
+                        size="sm"
+                      >
+                        {client.type}
+                      </Badge>
+                    </div>
                   )}
                 </div>
                 <ActionDropdown project={project} />
