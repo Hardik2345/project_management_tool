@@ -243,7 +243,7 @@ export function Tasks() {
   const TaskCard = ({ task }: { task: ApiTask }) => {
     const assignee = users.find((u) => u._id === task.assignedTo._id);
     const project =
-      typeof task.project === "object"
+      typeof task.projectt === "string"
         ? task.projectt
         : projects.find((p) => p._id === task.project);
     const timeEntries = state.timeEntries.filter(
