@@ -333,7 +333,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             typeof t.project === "string"
               ? t.project
               : (t.project as any)?._id || "",
-          project:t.project,
+          project: t.project,
           assignee_id:
             typeof t.assignedTo === "string"
               ? t.assignedTo
@@ -345,7 +345,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
           created_at: t.createdAt || "",
           updated_at: t.updatedAt || "",
           assignee: undefined,
-          project: undefined,
           subtasks: [],
         }));
         console.log("Mapped tasks:", tasks);
