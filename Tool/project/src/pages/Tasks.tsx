@@ -53,7 +53,8 @@ export function Tasks() {
     priority: t.priority,
     dueDate: t.due_date,
     assignedTo: { _id: t.assignee_id },
-    project: { _id: t.project_id, name: t.project_id?.name || "" },
+    project: { _id: t.project_id },
+    projectt: t.project_id?.name || "",
     estimatedHours: t.estimated_hours,
   })) as unknown as ApiTask[];
   const [users, setUsers] = useState<ApiUser[]>([]);
@@ -232,7 +233,7 @@ export function Tasks() {
     const assignee = users.find((u) => u._id === task.assignedTo._id);
     const project =
       typeof task.project === "object"
-        ? task.project.name
+        ? task.projectt
         : projects.find((p) => p._id === task.project);
     const timeEntries = state.timeEntries.filter(
       (te) => te.task_id === task._id
