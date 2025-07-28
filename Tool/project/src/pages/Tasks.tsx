@@ -116,8 +116,19 @@ export function Tasks() {
       task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ??
         false);
-    const matchesStatus =
-      statusFilter === "all" || task.status === statusFilter;
+    
+    // Handle overdue status filter
+    let matchesStatus = false;
+    if (statusFilter === "all") {
+      matchesStatus = true;
+    } else if (statusFilter === "overdue") {
+      matchesStatus = !!(task.dueDate && 
+        new Date(task.dueDate) < new Date() && 
+        task.status !== "done");
+    } else {
+      matchesStatus = task.status === statusFilter;
+    }
+    
     const matchesAssignee =
       assigneeFilter === "all" || task.assignedTo._id === assigneeFilter;
     const matchesProject =
@@ -361,6 +372,7 @@ export function Tasks() {
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="all">All Status</option>
+            <option value="overdue">Overdue</option>
             <option value="backlog">Backlog</option>
             <option value="todo">To Do</option>
             <option value="in-progress">In Progress</option>
