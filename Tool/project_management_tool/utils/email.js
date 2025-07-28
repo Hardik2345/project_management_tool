@@ -23,8 +23,7 @@ module.exports = class Email {
     }
 
     return nodemailer.createTransport({
-      service: "Gmail",
-      secure: false, // true for 465, false for other ports
+      service: "gmail",
       auth: {
         user: "hardikparikh19@gmail.com",
         pass: process.env.APP_PASSWORD, // Use app password if 2FA is enabled
