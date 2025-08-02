@@ -27,6 +27,7 @@ import { Badge } from "../components/ui/Badge";
 import { Modal } from "../components/ui/Modal";
 import { format } from "date-fns";
 import { UserService } from "../services/userService";
+import { Profile } from "../contexts/AppContext";
 
 export function TeamManagement() {
   const { state, dispatch, currentUser } = useApp();
@@ -182,18 +183,41 @@ export function TeamManagement() {
 
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      const updatedMember = {
-        ...selectedMember,
-        updated_at: new Date().toISOString(),
+      // Update member via API
+      const payload: Partial<any> = {
+        name: selectedMember.name,
+        email: selectedMember.email,
+        role:
+          selectedMember.role === "project_manager"
+            ? "manager"
+            : selectedMember.role === "team_member"
+            ? "team member"
+            : "admin",
+        active: selectedMember.is_active,
       };
-
+      const response = await UserService.updateUser(selectedMember.id, payload);
+      const apiUser = response.data?.user;
+      if (!apiUser) throw new Error("No user returned from API");
+      const updatedProfile: Profile = {
+        id: apiUser._id || selectedMember.id,
+        name: apiUser.name,
+        email: apiUser.email,
+        role:
+          apiUser.role === "manager"
+            ? "project_manager"
+            : apiUser.role === "team member"
+            ? "team_member"
+            : "admin",
+        avatar: (apiUser as any).photo || selectedMember.avatar || "",
+        weekly_capacity: selectedMember.weekly_capacity,
+        is_active: apiUser.active ?? selectedMember.is_active,
+        created_at: selectedMember.created_at,
+        updated_at: apiUser.updatedAt || new Date().toISOString(),
+      };
       dispatch({
         type: "SET_PROFILES",
         payload: state.profiles.map((p) =>
-          p.id === selectedMember.id ? updatedMember : p
+          p.id === selectedMember.id ? updatedProfile : p
         ),
       });
 
