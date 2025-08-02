@@ -79,7 +79,7 @@ const taskDueTomorrow = async (assignedTo) => {
 
 function startEmailScheduler() {
   cron.schedule(
-    '51 14 * * *',
+    '09 15 * * *',
     async () => {
       console.log('Running daily email task');
       const users = await members();
@@ -123,11 +123,16 @@ function startEmailScheduler() {
                     box-sizing: border-box;
                     }
 
+                    /* Ensure spacing between cards in email clients */
                     .card-container {
-                    display: flex;
-                    justify-content: space-between;
-                    gap: 20px;
-                    margin-bottom: 30px;
+                      display: flex;
+                      justify-content: space-between;
+                      margin-bottom: 30px;
+                    }
+
+                    /* Add right margin to all cards except the last for consistent spacing */
+                    .card-container .card:not(:last-child) {
+                      margin-right: 20px;
                     }
 
                     .card {
