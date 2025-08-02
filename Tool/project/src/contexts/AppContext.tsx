@@ -420,6 +420,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // New: reloadAllTimeEntries for project stats
   const reloadAllTimeEntries = async () => {
+    console.log("reloadAllTimeEntries called, projects:", state.projects);
     dispatch({ type: "SET_LOADING", payload: true });
     try {
       const all: TimeEntry[] = [];
@@ -448,7 +449,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       console.log("All time entries:", all);
       dispatch({ type: "SET_ALL_TIME_ENTRIES", payload: all });
-    } catch {
+      } catch (error) {
+      console.error("reloadAllTimeEntries error:", error);
       dispatch({ type: "SET_ALL_TIME_ENTRIES", payload: [] });
     } finally {
       dispatch({ type: "SET_LOADING", payload: false });
