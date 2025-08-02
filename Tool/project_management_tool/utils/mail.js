@@ -268,7 +268,7 @@ async function sendTaskAssignmentEmail(toEmail, task) {
               </table>
 
               <div style="text-align: center; margin-top: 30px;">
-                <a href="https://your-app-domain.com/tasks/${task._id}" style="background-color: #4CAF50; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; display: inline-block;">View Task</a>
+                <a href="https://project-management-tool-peach.vercel.app/tasks" style="background-color: #4CAF50; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; display: inline-block;">View Task</a>
               </div>
 
               <p style="margin-top: 30px; font-size: 14px; color: #888;">If you have any questions, please contact your team manager.</p>
