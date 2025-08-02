@@ -228,14 +228,63 @@ function startEmailScheduler() {
 // New: send notification when a task is assigned
 async function sendTaskAssignmentEmail(toEmail, task) {
   const subject = `New Task Assigned: ${task.title}`;
-  const due = task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : 'N/A';
-  const html = `
-    <h1>You have been assigned a new task</h1>
-    <p><strong>Title:</strong> ${task.title}</p>
-    <p><strong>Description:</strong> ${task.description || 'No description'}</p>
-    <p><strong>Due Date:</strong> ${due}</p>
-    <p>View it in the app: <a href="https://your-app-domain.com/tasks/${task._id}">Task Link</a></p>
-  `;
+  const due = task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>New Task Assigned</title>
+</head>
+<body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+          <tr>
+            <td style="background-color: #4CAF50; color: #ffffff; padding: 20px 30px; text-align: center; font-size: 24px; font-weight: bold;">
+              📋 New Task Assigned
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px;">
+              <p style="font-size: 16px; color: #333333;">Hello,</p>
+              <p style="font-size: 16px; color: #333333;">You have been assigned a new task. Please find the details below:</p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #fafafa;">
+                <tr>
+                  <td style="padding: 15px 20px; border-bottom: 1px solid #e0e0e0;">
+                    <strong style="color: #555;">Title:</strong> <span style="color: #333;">${task.title}</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 15px 20px; border-bottom: 1px solid #e0e0e0;">
+                    <strong style="color: #555;">Description:</strong> <span style="color: #333;">${task.description || 'No description'}</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 15px 20px;">
+                    <strong style="color: #555;">Due Date:</strong> <span style="color: #333;">${due}</span>
+                  </td>
+                </tr>
+              </table>
+
+              <div style="text-align: center; margin-top: 30px;">
+                <a href="https://your-app-domain.com/tasks/${task._id}" style="background-color: #4CAF50; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; display: inline-block;">View Task</a>
+              </div>
+
+              <p style="margin-top: 30px; font-size: 14px; color: #888;">If you have any questions, please contact your team manager.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color: #f4f4f4; text-align: center; padding: 15px; font-size: 12px; color: #999;">
+              © 2025 Task Manager Inc. All rights reserved.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
   transporter.sendMail({
     from: 'projects.techit@gmail.com',
     to: toEmail,
