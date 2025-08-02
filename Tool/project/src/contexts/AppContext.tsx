@@ -115,7 +115,8 @@ interface AppState {
   clients: Client[];
   projects: Project[];
   tasks: Task[];
-  timeEntries: TimeEntry[];
+  timeEntries: TimeEntry[];      // User-specific time entries
+  allTimeEntries: TimeEntry[];   // All users' time entries for project stats
   invoices: Invoice[];
   notifications: Notification[];
   isLoading: boolean;
@@ -129,6 +130,7 @@ type AppAction =
   | { type: "SET_PROJECTS"; payload: Project[] }
   | { type: "SET_TASKS"; payload: Task[] }
   | { type: "SET_TIME_ENTRIES"; payload: TimeEntry[] }
+  | { type: "SET_ALL_TIME_ENTRIES"; payload: TimeEntry[] }
   | { type: "SET_INVOICES"; payload: Invoice[] }
   | { type: "SET_NOTIFICATIONS"; payload: Notification[] }
   | { type: "ADD_PROJECT"; payload: Project }
@@ -149,6 +151,7 @@ const initialState: AppState = {
   projects: [],
   tasks: [],
   timeEntries: [],
+  allTimeEntries: [],
   invoices: [],
   notifications: [],
   isLoading: false,
@@ -169,6 +172,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, tasks: action.payload };
     case "SET_TIME_ENTRIES":
       return { ...state, timeEntries: action.payload };
+    case "SET_ALL_TIME_ENTRIES":
+      return { ...state, allTimeEntries: action.payload };
     case "SET_INVOICES":
       return { ...state, invoices: action.payload };
     case "SET_NOTIFICATIONS":
@@ -243,6 +248,7 @@ const AppContext = createContext<{
   currentUser: Profile | null;
   reloadTasksAndMeta: () => Promise<void>;
   reloadTimeEntries: () => Promise<void>;
+  reloadAllTimeEntries: () => Promise<void>;
 } | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -412,6 +418,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // New: reloadAllTimeEntries for project stats
+  const reloadAllTimeEntries = async () => {
+    dispatch({ type: "SET_LOADING", payload: true });
+    try {
+      const all: TimeEntry[] = [];
+      for (const project of state.projects) {
+        const res = await TimerService.getTimersForProject(project.id);
+        console.log("Fetched timers for project:", res);
+        let timers = Array.isArray(res.data?.timers) ? res.data.timers : res.data || [];
+        const entries = timers.map((t: any) => ({
+          id: t._id || t.id || "",
+          task_id: t.task._id || t.task || "",
+          project_id: t.project._id || t.project || "",
+          user_id: t.user._id || t.user || "",
+          date: t.startTime ? t.startTime.split("T")[0] : "",
+          duration: t.duration || 0,
+          description: t.description || "",
+          created_at: t.createdAt || t.startTime || "",
+        }));
+        all.push(...entries);
+      }
+      dispatch({ type: "SET_ALL_TIME_ENTRIES", payload: all });
+    } catch {
+      dispatch({ type: "SET_ALL_TIME_ENTRIES", payload: [] });
+    } finally {
+      dispatch({ type: "SET_LOADING", payload: false });
+    }
+  };
+
   useEffect(() => {
     // Only fetch meta (profiles, clients, projects, tasks) when user changes
     reloadTasksAndMeta();
@@ -419,6 +454,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     reloadTimeEntries();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  // New effect to reload all time entries when projects change
+  useEffect(() => {
+    if (state.projects.length > 0) {
+      reloadAllTimeEntries();
+    }
+  }, [state.projects]);
 
   // Sync currentUser in state when auth user changes
   useEffect(() => {
@@ -464,6 +506,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         currentUser: state.currentUser,
         reloadTasksAndMeta,
         reloadTimeEntries,
+        reloadAllTimeEntries,
       }}
     >
       {children}

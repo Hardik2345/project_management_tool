@@ -328,8 +328,9 @@ export function Projects() {
       (t) => t.status === "done"
     ).length;
     const totalTasks = projectTasks.length;
-    const projectTimeEntries = state.timeEntries.filter(
-      (te) => te.project_id._id === projectId
+    // Use aggregated allTimeEntries for project hour stats
+    const projectTimeEntries = state.allTimeEntries.filter(
+      (te) => te.project_id === projectId
     );
     const totalHours =
       projectTimeEntries.reduce((sum, te) => sum + te.duration, 0) / 60;
