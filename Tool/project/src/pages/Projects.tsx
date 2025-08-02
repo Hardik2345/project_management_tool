@@ -330,7 +330,7 @@ export function Projects() {
     const totalTasks = projectTasks.length;
     // Use aggregated allTimeEntries for project hour stats
     const projectTimeEntries = state.allTimeEntries.filter(
-      (te) => te.project_id === projectId
+      (te) => te.project === projectId
     );
     const totalHours =
       projectTimeEntries.reduce((sum, te) => sum + te.duration, 0) / 60;

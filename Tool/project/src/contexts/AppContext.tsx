@@ -430,7 +430,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const entries = timers.map((t: any) => ({
           id: t._id || t.id || "",
           task_id: t.task._id || t.task || "",
-          project_id: t.project._id || t.project || "",
+          project: t.project._id || t.project || "",
           user_id: t.user._id || t.user || "",
           date: t.startTime ? t.startTime.split("T")[0] : "",
           duration: t.duration || 0,
