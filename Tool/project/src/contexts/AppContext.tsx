@@ -433,7 +433,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
           project: t.project._id || t.project || "",
           user_id: t.user._id || t.user || "",
           date: t.startTime ? t.startTime.split("T")[0] : "",
-          duration: t.duration || 0,
+          duration: t.duration || (t.endTime && t.startTime
+              ? Math.round(
+                  (new Date(t.endTime).getTime() -
+                    new Date(t.startTime).getTime()) /
+                    60000
+                )
+              : 0),
           description: t.description || "",
           created_at: t.createdAt || t.startTime || "",
         }));
