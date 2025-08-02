@@ -197,7 +197,7 @@ export function TeamManagement() {
       };
       const response = await UserService.updateUser(selectedMember.id, payload);
       console.log("Member updated:", response);
-      const apiUser = response.data?.user;
+      const apiUser = response.data?.data;
       if (!apiUser) throw new Error("No user returned from API");
       const updatedProfile: Profile = {
         id: apiUser._id || selectedMember.id,
