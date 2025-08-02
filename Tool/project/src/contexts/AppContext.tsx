@@ -446,6 +446,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         console.log("Mapped time entries:", entries);
         all.push(...entries);
       }
+      console.log("All time entries:", all);
       dispatch({ type: "SET_ALL_TIME_ENTRIES", payload: all });
     } catch {
       dispatch({ type: "SET_ALL_TIME_ENTRIES", payload: [] });
