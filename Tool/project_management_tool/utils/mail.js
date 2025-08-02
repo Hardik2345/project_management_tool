@@ -225,4 +225,26 @@ function startEmailScheduler() {
   );
 }
 
-module.exports = { startEmailScheduler };
+// New: send notification when a task is assigned
+async function sendTaskAssignmentEmail(toEmail, task) {
+  const subject = `New Task Assigned: ${task.title}`;
+  const due = task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : 'N/A';
+  const html = `
+    <h1>You have been assigned a new task</h1>
+    <p><strong>Title:</strong> ${task.title}</p>
+    <p><strong>Description:</strong> ${task.description || 'No description'}</p>
+    <p><strong>Due Date:</strong> ${due}</p>
+    <p>View it in the app: <a href="https://your-app-domain.com/tasks/${task._id}">Task Link</a></p>
+  `;
+  transporter.sendMail({
+    from: 'projects.techit@gmail.com',
+    to: toEmail,
+    subject,
+    html,
+  }, (err, info) => {
+    if (err) console.error('Error sending task assignment email:', err);
+    else console.log('Task assignment email sent to:', toEmail);
+  });
+}
+
+module.exports = { startEmailScheduler, sendTaskAssignmentEmail };

@@ -1,5 +1,7 @@
 const Task = require("../models/taskModel");
 const Project = require("../models/projectModel");
+const User = require("../models/userModel"); // import User model
+const { sendTaskAssignmentEmail } = require("../utils/mail"); // import email helper
 const handlerFactory = require("./handlerFactory");
 const catchAsync = require("../utils/catchAsync");
 const APIFeatures = require("../utils/apiFeatures");
@@ -53,6 +55,17 @@ exports.createTask = catchAsync(async (req, res, next) => {
   const task = await Task.create(req.body);
   // Add the new task to the project's tasks array
   await Project.findByIdAndUpdate(task.project, { $push: { tasks: task._id } });
+
+  // Send assignment email to the user
+  try {
+    const assignee = await User.findById(task.assignedTo).select("email");
+    if (assignee && assignee.email) {
+      sendTaskAssignmentEmail(assignee.email, task);
+    }
+  } catch (err) {
+    console.error("Failed to send task assignment email:", err);
+  }
+
   res.status(201).json({
     status: "success",
     data: {
