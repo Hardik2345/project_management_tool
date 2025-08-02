@@ -8,7 +8,7 @@ let transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: 'projects.techit@gmail.com',
-    pass: "Apps@7777777#", // Use app password if 2FA is enabled
+    pass: "vqbvrbnezcwqgruw", // Use app password if 2FA is enabled
   },
 })
 
@@ -79,7 +79,7 @@ const taskDueTomorrow = async (assignedTo) => {
 
 function startEmailScheduler() {
   cron.schedule(
-    '42 14 * * *',
+    '51 14 * * *',
     async () => {
       console.log('Running daily email task');
       const users = await members();
