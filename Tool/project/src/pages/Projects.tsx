@@ -334,7 +334,7 @@ export function Projects() {
     );
     const totalHours =
       projectTimeEntries.reduce((sum, te) => sum + te.duration, 0) / 60;
-    console.log("project time entries:", projectTimeEntries);
+    console.log("all entries:", state.allTimeEntries);
     console.log("Project stats:", { completedTasks, totalTasks, totalHours });
 
     return { completedTasks, totalTasks, totalHours };
