@@ -420,7 +420,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // New: reloadAllTimeEntries for project stats
   const reloadAllTimeEntries = async () => {
-    console.log("reloadAllTimeEntries called, projects:", state.projects);
     dispatch({ type: "SET_LOADING", payload: true });
     try {
       const all: TimeEntry[] = [];
@@ -444,10 +443,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
            description: t.description || "",
            created_at: t.createdAt || t.startTime || "",
          }));
-        console.log("Mapped time entries:", entries);
         all.push(...entries);
       }
-      console.log("All time entries:", all);
       dispatch({ type: "SET_ALL_TIME_ENTRIES", payload: all });
       } catch (error) {
       console.error("reloadAllTimeEntries error:", error);
