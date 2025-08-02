@@ -443,6 +443,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           description: t.description || "",
           created_at: t.createdAt || t.startTime || "",
         }));
+        console.log("Mapped time entries:", entries);
         all.push(...entries);
       }
       dispatch({ type: "SET_ALL_TIME_ENTRIES", payload: all });
