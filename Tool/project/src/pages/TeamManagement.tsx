@@ -182,42 +182,18 @@ export function TeamManagement() {
 
     setLoading(true);
     try {
-      // Update member via API
-      const payload: Partial<any> = {
-        name: selectedMember.name,
-        email: selectedMember.email,
-        role:
-          selectedMember.role === "project_manager"
-            ? "manager"
-            : selectedMember.role === "team_member"
-            ? "team member"
-            : "admin",
-        active: selectedMember.is_active,
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      const updatedMember = {
+        ...selectedMember,
+        updated_at: new Date().toISOString(),
       };
-      const response = await UserService.updateUser(selectedMember.id, payload);
-      const u = response.data?.data?.user;
-      if (!u) throw new Error("No user returned from API");
-      // Map API user to internal profile shape
-      const updatedProfile = {
-        id: u._id || selectedMember.id,
-        name: u.name,
-        email: u.email,
-        role:
-          u.role === "manager"
-            ? "project_manager"
-            : u.role === "team member"
-            ? "team_member"
-            : "admin",
-        avatar: u.photo || selectedMember.avatar || "",
-        weekly_capacity: selectedMember.weekly_capacity,
-        is_active: u.active ?? selectedMember.is_active,
-        created_at: selectedMember.created_at,
-        updated_at: u.updatedAt || new Date().toISOString(),
-      };
+
       dispatch({
         type: "SET_PROFILES",
         payload: state.profiles.map((p) =>
-          p.id === selectedMember.id ? updatedProfile : p
+          p.id === selectedMember.id ? updatedMember : p
         ),
       });
 
@@ -281,7 +257,31 @@ export function TeamManagement() {
     }
   };
 
-  const handleDropdownAction = (action: string, member
+  const handleDropdownAction = (action: string, member: any) => {
+    setActiveDropdown(null);
+
+    switch (action) {
+      case "view":
+        navigate(`/team/${member.id}/profile`);
+        break;
+      case "edit":
+        setSelectedMember({ ...member, originalRole: member.role });
+        setShowEditModal(true);
+        break;
+      case "delete":
+        setSelectedMember(member);
+        setShowDeleteModal(true);
+        break;
+    }
+  };
+
+  const getMemberStats = (memberId: string) => {
+    const memberTasks = state.tasks.filter((t) => t.assignee_id === memberId);
+    const completedTasks = memberTasks.filter(
+      (t) => t.status === "done"
+    ).length;
+    const activeTasks = memberTasks.filter(
+      (t) => t.status === "in_progress"
     ).length;
 
     const thisMonthTimeEntries = state.timeEntries.filter((te) => {
