@@ -430,10 +430,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         let timers = Array.isArray(res.data?.timers) ? res.data.timers : res.data || [];
         const entries = timers.map((t: any) => ({
           id: t._id || t.id || "",
-          task_id: t.task._id || t.task || "",
-          project: t.project._id || t.project || "",
-          user_id: t.user._id || t.user || "",
-          date: t.startTime ? t.startTime.split("T")[0] : "",
+          task_id: t.task && typeof t.task === 'object' && t.task._id ? t.task._id : (typeof t.task === 'string' ? t.task : ""),
+          project_id: t.project && typeof t.project === 'object' && t.project._id ? t.project._id : (typeof t.project === 'string' ? t.project : ""),
+          user_id: t.user && typeof t.user === 'object' && t.user._id ? t.user._id : (typeof t.user === 'string' ? t.user : ""),
+           date: t.startTime ? t.startTime.split("T")[0] : "",
           duration: t.duration || (t.endTime && t.startTime
               ? Math.round(
                   (new Date(t.endTime).getTime() -
@@ -441,9 +441,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
                     60000
                 )
               : 0),
-          description: t.description || "",
-          created_at: t.createdAt || t.startTime || "",
-        }));
+           description: t.description || "",
+           created_at: t.createdAt || t.startTime || "",
+         }));
         console.log("Mapped time entries:", entries);
         all.push(...entries);
       }
