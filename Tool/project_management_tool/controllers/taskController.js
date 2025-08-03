@@ -70,13 +70,13 @@ exports.createTask = catchAsync(async (req, res, next) => {
   // Create in-app notification for the assigned user
   try {
     if (task.assignedTo) {
-      await createNotification({
-        userId: task.assignedTo,
-        title: "New Task Assigned",
-        message: `You have been assigned a new task: "${task.title}"`,
-        type: "task_assignment",
-        relatedTaskId: task._id
-      });
+      await createNotification(
+        task.assignedTo,
+        "New Task Assigned",
+        `You have been assigned a new task: "${task.title}"`,
+        "task_assignment",
+        task._id
+      );
     }
   } catch (err) {
     console.error("Failed to create task assignment notification:", err);
@@ -90,5 +90,39 @@ exports.createTask = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.updateTask = handlerFactory.updateOne(Task);
+exports.updateTask = catchAsync(async (req, res, next) => {
+  // Get the current task to check if assignee is changing
+  const currentTask = await Task.findById(req.params.id);
+  if (!currentTask) {
+    return next(new Error("No task found with that ID"));
+  }
+
+  const task = await Task.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
+  // Check if assignedTo field changed and send notification
+  if (req.body.assignedTo && req.body.assignedTo !== currentTask.assignedTo?.toString()) {
+    try {
+      await createNotification(
+        req.body.assignedTo,
+        "Task Assigned to You",
+        `You have been assigned to task: "${task.title}"`,
+        "task_assignment",
+        task._id
+      );
+    } catch (err) {
+      console.error("Failed to create task assignment notification:", err);
+    }
+  }
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      data: task,
+    },
+  });
+});
+
 exports.deleteTask = handlerFactory.deleteOne(Task);
