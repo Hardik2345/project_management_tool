@@ -10,7 +10,8 @@ import { ProjectService } from "../services/projectService";
 import { TaskService } from "../services/taskService";
 import { TimerService } from "../services/timerService";
 import { UserService } from "../services/userService";
-import { notificationService, Notification as ApiNotification } from "../services/notificationService";
+// Temporarily comment out notification service import to debug
+// import { notificationService, Notification as ApiNotification } from "../services/notificationService";
 
 // Type definitions
 export type Profile = {
@@ -479,14 +480,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Notification methods
+  // Notification methods - temporarily disabled for debugging
   const reloadNotifications = async () => {
     if (!user) return;
     
     try {
-      const { notifications, unreadCount } = await notificationService.refreshNotifications();
-      dispatch({ type: "SET_NOTIFICATIONS", payload: notifications });
-      dispatch({ type: "SET_UNREAD_COUNT", payload: unreadCount });
+      // const { notifications, unreadCount } = await notificationService.refreshNotifications();
+      // dispatch({ type: "SET_NOTIFICATIONS", payload: notifications });
+      // dispatch({ type: "SET_UNREAD_COUNT", payload: unreadCount });
     } catch (error) {
       console.error("Failed to load notifications:", error);
     }
@@ -494,8 +495,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const markNotificationAsRead = async (id: string) => {
     try {
-      await notificationService.markAsRead(id);
-      dispatch({ type: "MARK_NOTIFICATION_READ", payload: id });
+      // await notificationService.markAsRead(id);
+      // dispatch({ type: "MARK_NOTIFICATION_READ", payload: id });
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
     }
@@ -503,8 +504,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const markAllNotificationsAsRead = async () => {
     try {
-      await notificationService.markAllAsRead();
-      dispatch({ type: "MARK_ALL_NOTIFICATIONS_READ" });
+      // await notificationService.markAllAsRead();
+      // dispatch({ type: "MARK_ALL_NOTIFICATIONS_READ" });
     } catch (error) {
       console.error("Failed to mark all notifications as read:", error);
     }
