@@ -515,10 +515,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     reloadTasksAndMeta();
     // Always fetch time entries when user changes
     reloadTimeEntries();
-    // Only load notifications if user is authenticated
-    if (user) {
-      reloadNotifications();
-    }
+    // Temporarily disable notification loading to debug login issue
+    // if (user) {
+    //   reloadNotifications();
+    // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
