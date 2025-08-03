@@ -273,6 +273,7 @@ const AppContext = createContext<{
   reloadAllTimeEntries: () => Promise<void>;
   reloadNotifications: () => Promise<void>;
   markNotificationAsRead: (id: string) => Promise<void>;
+  archiveNotification: (id: string) => Promise<void>;
   markAllNotificationsAsRead: () => Promise<void>;
 } | null>(null);
 
@@ -505,6 +506,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const archiveNotification = async (id: string) => {
+    try {
+      const { notificationService } = await import("../services/notificationService");
+      await notificationService.archiveNotification(id);
+      // Remove from state by filtering out the archived notification
+      dispatch({ type: "MARK_NOTIFICATION_READ", payload: id });
+    } catch (error) {
+      console.error("Failed to archive notification:", error);
+    }
+  };
+
   const markAllNotificationsAsRead = async () => {
     try {
       const { notificationService } = await import("../services/notificationService");
@@ -581,6 +593,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         reloadAllTimeEntries,
         reloadNotifications,
         markNotificationAsRead,
+        archiveNotification,
         markAllNotificationsAsRead,
       }}
     >

@@ -45,6 +45,10 @@ class NotificationService {
     await api.patch(`${this.baseUrl}/${notificationId}/read`);
   }
 
+  async archiveNotification(notificationId: string): Promise<void> {
+    await api.patch(`${this.baseUrl}/${notificationId}/archive`);
+  }
+
   async markAllAsRead(): Promise<void> {
     await api.patch(`${this.baseUrl}/mark-all-read`);
   }

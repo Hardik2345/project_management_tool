@@ -5,7 +5,7 @@ const APIFeatures = require('../utils/apiFeatures');
 // Get all notifications for the authenticated user
 exports.getNotifications = catchAsync(async (req, res, next) => {
   const features = new APIFeatures(
-    Notification.find({ user: req.user._id }),
+    Notification.find({ user: req.user._id, archived: false }),
     req.query
   )
     .sort('-createdAt') // Latest first
@@ -28,6 +28,7 @@ exports.getUnreadCount = catchAsync(async (req, res, next) => {
   const count = await Notification.countDocuments({
     user: req.user._id,
     read: false,
+    archived: false,
   });
 
   res.status(200).json({
@@ -70,6 +71,7 @@ exports.markAllAsRead = catchAsync(async (req, res, next) => {
     {
       user: req.user._id,
       read: false,
+      archived: false,
     },
     { read: true }
   );
@@ -77,6 +79,32 @@ exports.markAllAsRead = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     message: 'All notifications marked as read',
+  });
+});
+
+// Archive a specific notification
+exports.archiveNotification = catchAsync(async (req, res, next) => {
+  const notification = await Notification.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      user: req.user._id, // Ensure user can only archive their own notifications
+    },
+    { archived: true, read: true }, // Mark as both archived and read
+    { new: true }
+  );
+
+  if (!notification) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'Notification not found',
+    });
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      notification,
+    },
   });
 });
 

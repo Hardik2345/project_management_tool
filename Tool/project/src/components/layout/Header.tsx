@@ -14,7 +14,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { Button } from "../ui/Button";
 
 export function Header() {
-  const { state, currentUser, dispatch, markNotificationAsRead, markAllNotificationsAsRead } = useApp();
+  const { state, currentUser, dispatch, archiveNotification, markAllNotificationsAsRead } = useApp();
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -25,10 +25,8 @@ export function Header() {
   const unreadNotifications = state.notifications?.filter((n) => !n.read) || [];
 
   const handleNotificationClick = async (notification: any) => {
-    // Mark as read if not already read
-    if (!notification.read) {
-      await markNotificationAsRead(notification._id);
-    }
+    // Archive the notification (marks as read and archived)
+    await archiveNotification(notification._id);
 
     // Navigate to task detail if it's a task-related notification
     if (notification.relatedTaskId) {

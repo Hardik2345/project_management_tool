@@ -16,6 +16,9 @@ router.get('/unread-count', authController.protect, notificationController.getUn
 // Mark specific notification as read
 router.patch('/:id/read', authController.protect, notificationController.markAsRead);
 
+// Archive specific notification
+router.patch('/:id/archive', authController.protect, notificationController.archiveNotification);
+
 // Mark all notifications as read
 router.patch('/mark-all-read', authController.protect, notificationController.markAllAsRead);
 

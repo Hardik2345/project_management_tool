@@ -27,6 +27,11 @@ const notificationSchema = new mongoose.Schema({
     default: false,
     index: true,
   },
+  archived: {
+    type: Boolean,
+    default: false,
+    index: true,
+  },
   relatedTaskId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Task',
@@ -39,7 +44,7 @@ const notificationSchema = new mongoose.Schema({
 });
 
 // Compound index for efficient querying
-notificationSchema.index({ user: 1, read: 1, createdAt: -1 });
+notificationSchema.index({ user: 1, archived: 1, read: 1, createdAt: -1 });
 
 // Instance method to mark as read
 notificationSchema.methods.markAsRead = function() {
