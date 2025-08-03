@@ -101,12 +101,13 @@ type Invoice = {
 
 type Notification = {
   _id: string;
-  userId: string;
+  user: string;
   title: string;
   message: string;
-  type: "task_assignment" | "task_update" | "general";
+  type: "info" | "task_assignment" | "task_update" | "general";
   read: boolean;
   relatedTaskId?: string;
+  link?: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -483,8 +484,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!user) return;
     
     try {
+      console.log("Loading notifications for user:", user._id);
       const { notificationService } = await import("../services/notificationService");
       const { notifications, unreadCount } = await notificationService.refreshNotifications();
+      console.log("Loaded notifications:", notifications, "Unread count:", unreadCount);
       dispatch({ type: "SET_NOTIFICATIONS", payload: notifications });
       dispatch({ type: "SET_UNREAD_COUNT", payload: unreadCount });
     } catch (error) {

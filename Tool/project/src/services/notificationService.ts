@@ -2,12 +2,13 @@ import { api } from '../lib/api';
 
 export interface Notification {
   _id: string;
-  userId: string;
+  user: string;
   title: string;
   message: string;
-  type: 'task_assignment' | 'task_update' | 'general';
+  type: 'info' | 'task_assignment' | 'task_update' | 'general';
   read: boolean;
   relatedTaskId?: string;
+  link?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -16,7 +17,7 @@ export interface NotificationResponse {
   status: string;
   results: number;
   data: {
-    data: Notification[];
+    notifications: Notification[];
   };
 }
 
@@ -56,7 +57,7 @@ class NotificationService {
     ]);
 
     return {
-      notifications: notificationsResponse.data.data,
+      notifications: notificationsResponse.data.notifications,
       unreadCount
     };
   }
