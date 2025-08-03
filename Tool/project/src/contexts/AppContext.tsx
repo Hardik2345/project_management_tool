@@ -10,8 +10,6 @@ import { ProjectService } from "../services/projectService";
 import { TaskService } from "../services/taskService";
 import { TimerService } from "../services/timerService";
 import { UserService } from "../services/userService";
-// Temporarily comment out notification service import to debug
-// import { notificationService, Notification as ApiNotification } from "../services/notificationService";
 
 // Type definitions
 export type Profile = {
@@ -480,14 +478,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Notification methods - temporarily disabled for debugging
+  // Notification methods - using dynamic imports to avoid loading issues
   const reloadNotifications = async () => {
     if (!user) return;
     
     try {
-      // const { notifications, unreadCount } = await notificationService.refreshNotifications();
-      // dispatch({ type: "SET_NOTIFICATIONS", payload: notifications });
-      // dispatch({ type: "SET_UNREAD_COUNT", payload: unreadCount });
+      const { notificationService } = await import("../services/notificationService");
+      const { notifications, unreadCount } = await notificationService.refreshNotifications();
+      dispatch({ type: "SET_NOTIFICATIONS", payload: notifications });
+      dispatch({ type: "SET_UNREAD_COUNT", payload: unreadCount });
     } catch (error) {
       console.error("Failed to load notifications:", error);
     }
@@ -495,8 +494,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const markNotificationAsRead = async (id: string) => {
     try {
-      // await notificationService.markAsRead(id);
-      // dispatch({ type: "MARK_NOTIFICATION_READ", payload: id });
+      const { notificationService } = await import("../services/notificationService");
+      await notificationService.markAsRead(id);
+      dispatch({ type: "MARK_NOTIFICATION_READ", payload: id });
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
     }
@@ -504,8 +504,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const markAllNotificationsAsRead = async () => {
     try {
-      // await notificationService.markAllAsRead();
-      // dispatch({ type: "MARK_ALL_NOTIFICATIONS_READ" });
+      const { notificationService } = await import("../services/notificationService");
+      await notificationService.markAllAsRead();
+      dispatch({ type: "MARK_ALL_NOTIFICATIONS_READ" });
     } catch (error) {
       console.error("Failed to mark all notifications as read:", error);
     }
@@ -516,10 +517,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     reloadTasksAndMeta();
     // Always fetch time entries when user changes
     reloadTimeEntries();
-    // Temporarily disable notification loading to debug login issue
-    // if (user) {
-    //   reloadNotifications();
-    // }
+    // Load notifications using dynamic import to avoid loading issues
+    if (user) {
+      reloadNotifications();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
