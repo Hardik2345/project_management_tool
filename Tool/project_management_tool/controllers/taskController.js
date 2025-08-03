@@ -70,13 +70,14 @@ exports.createTask = catchAsync(async (req, res, next) => {
   // Create in-app notification for the assigned user
   try {
     if (task.assignedTo) {
-      await createNotification(
+      const notification=await createNotification(
         task.assignedTo,
         "New Task Assigned",
         `You have been assigned a new task: "${task.title}"`,
         "task_assignment",
         task._id
       );
+      console.log("Notification created:", notification);
     }
   } catch (err) {
     console.error("Failed to create task assignment notification:", err);
