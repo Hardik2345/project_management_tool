@@ -78,6 +78,7 @@ exports.createTask = catchAsync(async (req, res, next) => {
         task._id
       );
       console.log("Notification created:", notification);
+      console.log("Task assignment notification created successfully");
     }
   } catch (err) {
     console.error("Failed to create task assignment notification:", err);
