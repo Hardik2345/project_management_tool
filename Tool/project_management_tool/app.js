@@ -15,6 +15,8 @@ const projectRouter = require("./routes/projectRoutes");
 const taskRouter = require("./routes/taskRoutes");
 const clientRouter = require("./routes/clientRoutes");
 const timerRoutes = require("./routes/timerRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 // const AppError = require("./utils/appError");
 // const globalErrorHandler = require("./controllers/errorController");
 
@@ -103,6 +105,7 @@ app.use("/api/v1/projects", projectRouter);
 app.use("/api/v1/tasks", taskRouter);
 app.use("/api/v1/clients", clientRouter);
 app.use("/api/v1/timers", timerRoutes);
+app.use("/api/v1/notifications", notificationRoutes);
 
 // app.all("*", (req, res, next) => {
 //   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));

@@ -14,7 +14,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { Button } from "../ui/Button";
 
 export function Header() {
-  const { state, currentUser, dispatch } = useApp();
+  const { state, currentUser, dispatch, markNotificationAsRead, markAllNotificationsAsRead } = useApp();
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -23,6 +23,23 @@ export function Header() {
   const notificationsRef = useRef<HTMLDivElement>(null);
 
   const unreadNotifications = state.notifications.filter((n) => !n.read);
+
+  const handleNotificationClick = async (notification: any) => {
+    // Mark as read if not already read
+    if (!notification.read) {
+      await markNotificationAsRead(notification._id);
+    }
+
+    // Navigate to task detail if it's a task-related notification
+    if (notification.relatedTaskId) {
+      navigate(`/tasks/${notification.relatedTaskId}`);
+      setShowNotifications(false);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    await markAllNotificationsAsRead();
+  };
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -112,9 +129,9 @@ export function Header() {
             aria-label="View notifications"
           >
             <Bell className="h-5 w-5" />
-            {unreadNotifications.length > 0 && (
+            {state.unreadNotificationCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium leading-none">
-                {unreadNotifications.length}
+                {state.unreadNotificationCount > 99 ? '99+' : state.unreadNotificationCount}
               </span>
             )}
           </button>
@@ -122,13 +139,24 @@ export function Header() {
           {showNotifications && (
             <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 z-50">
               <div className="py-1">
-                <div className="px-4 py-3 text-sm font-semibold text-gray-900 border-b border-gray-100">
-                  Notifications ({unreadNotifications.length} unread)
+                <div className="px-4 py-3 flex items-center justify-between border-b border-gray-100">
+                  <span className="text-sm font-semibold text-gray-900">
+                    Notifications ({unreadNotifications.length} unread)
+                  </span>
+                  {unreadNotifications.length > 0 && (
+                    <button
+                      onClick={handleMarkAllAsRead}
+                      className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      Mark all read
+                    </button>
+                  )}
                 </div>
                 {state.notifications.slice(0, 5).map((notification) => (
                   <div
-                    key={notification.id}
-                    className={`px-4 py-3 text-sm hover:bg-gray-50 transition-colors ${
+                    key={notification._id}
+                    onClick={() => handleNotificationClick(notification)}
+                    className={`px-4 py-3 text-sm hover:bg-gray-50 transition-colors cursor-pointer ${
                       notification.read
                         ? "text-gray-600"
                         : "text-gray-900 bg-blue-50"
@@ -138,11 +166,35 @@ export function Header() {
                     <div className="text-gray-500 mt-1">
                       {notification.message}
                     </div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      {new Date(notification.createdAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </div>
+                    {!notification.read && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
                   </div>
                 ))}
                 {state.notifications.length === 0 && (
                   <div className="px-4 py-6 text-center text-sm text-gray-500">
                     No notifications
+                  </div>
+                )}
+                {state.notifications.length > 5 && (
+                  <div className="px-4 py-2 border-t border-gray-100">
+                    <button 
+                      onClick={() => {
+                        navigate('/notifications');
+                        setShowNotifications(false);
+                      }}
+                      className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      View all notifications
+                    </button>
                   </div>
                 )}
               </div>

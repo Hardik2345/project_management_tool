@@ -2,6 +2,7 @@ const Task = require("../models/taskModel");
 const Project = require("../models/projectModel");
 const User = require("../models/userModel"); // import User model
 const { sendTaskAssignmentEmail } = require("../utils/mail"); // import email helper
+const { createNotification } = require("./notificationController"); // import notification helper
 const handlerFactory = require("./handlerFactory");
 const catchAsync = require("../utils/catchAsync");
 const APIFeatures = require("../utils/apiFeatures");
@@ -58,12 +59,27 @@ exports.createTask = catchAsync(async (req, res, next) => {
 
   // Send assignment email to the user
   try {
-    const assignee = await User.findById(task.assignedTo).select("email");
+    const assignee = await User.findById(task.assignedTo).select("email name");
     if (assignee && assignee.email) {
       sendTaskAssignmentEmail(assignee.email, task);
     }
   } catch (err) {
     console.error("Failed to send task assignment email:", err);
+  }
+
+  // Create in-app notification for the assigned user
+  try {
+    if (task.assignedTo) {
+      await createNotification({
+        userId: task.assignedTo,
+        title: "New Task Assigned",
+        message: `You have been assigned a new task: "${task.title}"`,
+        type: "task_assignment",
+        relatedTaskId: task._id
+      });
+    }
+  } catch (err) {
+    console.error("Failed to create task assignment notification:", err);
   }
 
   res.status(201).json({

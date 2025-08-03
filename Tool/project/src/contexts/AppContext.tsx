@@ -10,7 +10,7 @@ import { ProjectService } from "../services/projectService";
 import { TaskService } from "../services/taskService";
 import { TimerService } from "../services/timerService";
 import { UserService } from "../services/userService";
-import { ApiProject, ApiTask } from "../types";
+import { notificationService, Notification as ApiNotification } from "../services/notificationService";
 
 // Type definitions
 export type Profile = {
@@ -101,13 +101,15 @@ type Invoice = {
 };
 
 type Notification = {
-  id: string;
-  user_id: string;
+  _id: string;
+  userId: string;
   title: string;
   message: string;
-  type: "info" | "warning" | "error" | "success";
+  type: "task_assignment" | "task_update" | "general";
   read: boolean;
-  created_at: string;
+  relatedTaskId?: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 interface AppState {
@@ -119,6 +121,7 @@ interface AppState {
   allTimeEntries: TimeEntry[];   // All users' time entries for project stats
   invoices: Invoice[];
   notifications: Notification[];
+  unreadNotificationCount: number;
   isLoading: boolean;
   currentUser: Profile | null;
 }
@@ -133,6 +136,7 @@ type AppAction =
   | { type: "SET_ALL_TIME_ENTRIES"; payload: TimeEntry[] }
   | { type: "SET_INVOICES"; payload: Invoice[] }
   | { type: "SET_NOTIFICATIONS"; payload: Notification[] }
+  | { type: "SET_UNREAD_COUNT"; payload: number }
   | { type: "ADD_PROJECT"; payload: Project }
   | { type: "UPDATE_PROJECT"; payload: Project }
   | { type: "ADD_TASK"; payload: Task }
@@ -143,6 +147,8 @@ type AppAction =
   | { type: "DELETE_CLIENT"; payload: string }
   | { type: "ADD_INVOICE"; payload: Invoice }
   | { type: "MARK_NOTIFICATION_READ"; payload: string }
+  | { type: "MARK_ALL_NOTIFICATIONS_READ" }
+  | { type: "ADD_NOTIFICATION"; payload: Notification }
   | { type: "SET_CURRENT_USER"; payload: Profile | null };
 
 const initialState: AppState = {
@@ -154,6 +160,7 @@ const initialState: AppState = {
   allTimeEntries: [],
   invoices: [],
   notifications: [],
+  unreadNotificationCount: 0,
   isLoading: false,
   currentUser: null,
 };
@@ -178,6 +185,14 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, invoices: action.payload };
     case "SET_NOTIFICATIONS":
       return { ...state, notifications: action.payload };
+    case "SET_UNREAD_COUNT":
+      return { ...state, unreadNotificationCount: action.payload };
+    case "ADD_NOTIFICATION":
+      return { 
+        ...state, 
+        notifications: [action.payload, ...state.notifications],
+        unreadNotificationCount: state.unreadNotificationCount + 1
+      };
     case "ADD_PROJECT":
       return { ...state, projects: [...state.projects, action.payload] };
     case "UPDATE_PROJECT":
@@ -218,8 +233,15 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         notifications: state.notifications.map((n) =>
-          n.id === action.payload ? { ...n, read: true } : n
+          n._id === action.payload ? { ...n, read: true } : n
         ),
+        unreadNotificationCount: Math.max(0, state.unreadNotificationCount - 1)
+      };
+    case "MARK_ALL_NOTIFICATIONS_READ":
+      return {
+        ...state,
+        notifications: state.notifications.map((n) => ({ ...n, read: true })),
+        unreadNotificationCount: 0
       };
     case "SET_CURRENT_USER":
       return { ...state, currentUser: action.payload };
@@ -249,6 +271,9 @@ const AppContext = createContext<{
   reloadTasksAndMeta: () => Promise<void>;
   reloadTimeEntries: () => Promise<void>;
   reloadAllTimeEntries: () => Promise<void>;
+  reloadNotifications: () => Promise<void>;
+  markNotificationAsRead: (id: string) => Promise<void>;
+  markAllNotificationsAsRead: () => Promise<void>;
 } | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -454,11 +479,44 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Notification methods
+  const reloadNotifications = async () => {
+    if (!user) return;
+    
+    try {
+      const { notifications, unreadCount } = await notificationService.refreshNotifications();
+      dispatch({ type: "SET_NOTIFICATIONS", payload: notifications });
+      dispatch({ type: "SET_UNREAD_COUNT", payload: unreadCount });
+    } catch (error) {
+      console.error("Failed to load notifications:", error);
+    }
+  };
+
+  const markNotificationAsRead = async (id: string) => {
+    try {
+      await notificationService.markAsRead(id);
+      dispatch({ type: "MARK_NOTIFICATION_READ", payload: id });
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+    }
+  };
+
+  const markAllNotificationsAsRead = async () => {
+    try {
+      await notificationService.markAllAsRead();
+      dispatch({ type: "MARK_ALL_NOTIFICATIONS_READ" });
+    } catch (error) {
+      console.error("Failed to mark all notifications as read:", error);
+    }
+  };
+
   useEffect(() => {
     // Only fetch meta (profiles, clients, projects, tasks) when user changes
     reloadTasksAndMeta();
     // Always fetch time entries when user changes
     reloadTimeEntries();
+    // Load notifications when user changes
+    reloadNotifications();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
@@ -514,6 +572,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         reloadTasksAndMeta,
         reloadTimeEntries,
         reloadAllTimeEntries,
+        reloadNotifications,
+        markNotificationAsRead,
+        markAllNotificationsAsRead,
       }}
     >
       {children}

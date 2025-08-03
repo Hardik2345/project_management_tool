@@ -9,6 +9,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { Projects } from "./pages/Projects";
 import { EditProject } from "./pages/EditProject";
 import { Tasks } from "./pages/Tasks";
+import { TaskDetail } from "./pages/TaskDetail";
 import { TimeTracking } from "./pages/TimeTracking";
 import { TeamManagement } from "./pages/TeamManagement";
 import { ProfileView } from "./pages/ProfileView";
@@ -58,6 +59,7 @@ function AppContent() {
             <Route path="projects" element={<Projects />} />
             <Route path="projects/:id/edit" element={<EditProject />} />
             <Route path="tasks" element={<Tasks />} />
+            <Route path="tasks/:id" element={<TaskDetail />} />
             <Route path="time" element={<TimeTracking />} />
             <Route path="team" element={<TeamManagement />} />
             <Route path="team/:memberId/profile" element={<ProfileView />} />
