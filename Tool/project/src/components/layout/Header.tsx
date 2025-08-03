@@ -22,7 +22,7 @@ export function Header() {
   const profileRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
 
-  const unreadNotifications = state.notifications.filter((n) => !n.read);
+  const unreadNotifications = state.notifications?.filter((n) => !n.read) || [];
 
   const handleNotificationClick = async (notification: any) => {
     // Mark as read if not already read
@@ -152,7 +152,7 @@ export function Header() {
                     </button>
                   )}
                 </div>
-                {state.notifications.slice(0, 5).map((notification) => (
+                {(state.notifications || []).slice(0, 5).map((notification) => (
                   <div
                     key={notification._id}
                     onClick={() => handleNotificationClick(notification)}
@@ -179,12 +179,12 @@ export function Header() {
                     )}
                   </div>
                 ))}
-                {state.notifications.length === 0 && (
+                {(state.notifications || []).length === 0 && (
                   <div className="px-4 py-6 text-center text-sm text-gray-500">
                     No notifications
                   </div>
                 )}
-                {state.notifications.length > 5 && (
+                {(state.notifications || []).length > 5 && (
                   <div className="px-4 py-2 border-t border-gray-100">
                     <button 
                       onClick={() => {
