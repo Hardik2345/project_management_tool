@@ -16,7 +16,6 @@ const taskRouter = require("./routes/taskRoutes");
 const clientRouter = require("./routes/clientRoutes");
 const timerRoutes = require("./routes/timerRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
-const notificationRoutes = require("./routes/notificationRoutes");
 // const AppError = require("./utils/appError");
 // const globalErrorHandler = require("./controllers/errorController");
 
