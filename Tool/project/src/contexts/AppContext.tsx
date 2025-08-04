@@ -417,9 +417,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // Map timers to TimeEntry[] shape if needed
         const timeEntries = timers.map((t: any) => ({
           id: t._id || t.id || "",
-          task_id: t.task,
-          project_id: t.project,
-          user_id: t.user,
+          task_id: t.task || "",
+          project_id: t.project || "",
+          user_id: t.user || "",
           date: t.startTime ? t.startTime.split("T")[0] : "",
           duration:
             t.duration ||

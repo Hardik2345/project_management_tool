@@ -65,8 +65,10 @@ export function TimeTracking() {
   const [backendTimer, setBackendTimer] = useState<TimerRecord | null>(null);
   const [loadingTimer, setLoadingTimer] = useState(false);
   // Helper to extract string ID from maybe-populated field
-  const extractId = (val: any): string =>
-    typeof val === "string" ? val : val._id || val.id || "";
+  const extractId = (val: any): string => {
+    if (val === null || val === undefined) return "";
+    return typeof val === "string" ? val : val._id || val.id || "";
+  };
 
   // Consolidate restore and fetch of running timer
   useEffect(() => {
@@ -417,8 +419,8 @@ export function TimeTracking() {
         );
         return (
           te.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          task?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          project?.name.toLowerCase().includes(searchTerm.toLowerCase())
+          (task?.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (project?.name || "").toLowerCase().includes(searchTerm.toLowerCase())
         );
       });
     }
@@ -513,9 +515,9 @@ export function TimeTracking() {
     const rows = state.timeEntries.map((te) => {
       const project =
         state.projects.find((p) => p.id === extractId(te.project_id))?.name ||
-        "";
+        "Unknown Project";
       const task =
-        state.tasks.find((t) => t.id === extractId(te.task_id))?.title || "";
+        state.tasks.find((t) => t.id === extractId(te.task_id))?.title || "Unknown Task";
       // Escape quotes in description
       const desc = te.description.replace(/"/g, '""');
       return [te.date, te.created_at, project, task, desc, te.duration];
@@ -905,9 +907,9 @@ export function TimeTracking() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        {project?.name}
+                        {project?.name || "Unknown Project"}
                       </div>
                       <div className="text-sm text-gray-500">
                         <Badge
@@ -917,17 +919,17 @@ export function TimeTracking() {
                               : project?.priority === "high"
                               ? "warning"
                               : project?.priority === "medium"
-                              ? "info"
+                              ? "warning"
                               : "secondary"
                           }
                           size="sm"
                         >
-                          {project?.priority}
+                          {project?.priority || "unknown"}
                         </Badge>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
-                      <div className="max-w-xs truncate">{task?.title}</div>
+                      <div className="max-w-xs truncate">{task?.title || "Unknown Task"}</div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
                       <div className="max-w-xs truncate">
@@ -1186,14 +1188,14 @@ export function TimeTracking() {
                   {
                     state.projects.find(
                       (p) => p.id === selectedEntry.project_id
-                    )?.name
+                    )?.name || "Unknown Project"
                   }
                 </div>
                 <div>
                   Task:{" "}
                   {
                     state.tasks.find((t) => t.id === selectedEntry.task_id)
-                      ?.title
+                      ?.title || "Unknown Task"
                   }
                 </div>
                 <div>
