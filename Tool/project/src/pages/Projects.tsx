@@ -329,11 +329,11 @@ export function Projects() {
     ).length;
     const totalTasks = projectTasks.length;
     // Use aggregated allTimeEntries for project hour stats
-    const projectTimeEntries = state.allTimeEntries.filter(
+    const projectTimeEntry = state.allTimeEntries.find(
       (te) => te.project_id === projectId
     );
-    console.log("Project Time Entries:", projectTimeEntries);
-    const totalHours =projectTimeEntries.duration
+    console.log("Project Time Entries:", projectTimeEntry);
+    const totalHours =projectTimeEntry ? projectTimeEntry.duration : null;
 
     return { completedTasks, totalTasks, totalHours };
   };
