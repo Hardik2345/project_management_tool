@@ -57,8 +57,9 @@ export function TaskModal({
 
   // Time tracking data
   const timeEntries = task
-    ? state.timeEntries.filter((te) => te.task_id === task.id)
+    ? state.timeEntries.filter((te) => te.task_id._id === task.id)
     : [];
+  console.log("Here is the task:", task);
   console.log("Time Entries:", state.timeEntries);
   const loggedHours =
     timeEntries.reduce((sum, te) => sum + te.duration, 0) / 60;
