@@ -333,7 +333,7 @@ export function Projects() {
       (te) => te.project_id === projectId
     );
     console.log("Project Time Entries:", projectTimeEntry);
-    const totalHours =projectTimeEntry ? projectTimeEntry.duration : null;
+    const totalHours =projectTimeEntry ? (projectTimeEntry.duration/60).toFixed(2) : null;
 
     return { completedTasks, totalTasks, totalHours };
   };
