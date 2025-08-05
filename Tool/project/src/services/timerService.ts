@@ -1,4 +1,4 @@
-import api from "../lib/api";
+import { apiWithRetry } from "../lib/api";
 
 export interface Timer {
   _id: string;
@@ -20,7 +20,7 @@ function toObjectId(id: string): string {
 export class TimerService {
   static async startTimer(userId: string, projectId: string, taskId: string) {
     // Ensure all IDs are valid ObjectId strings
-    return api
+    return apiWithRetry
       .patch("/timers/start", {
         userId: toObjectId(userId),
         projectId: toObjectId(projectId),
@@ -35,7 +35,7 @@ export class TimerService {
     description?: string
   ) {
     // Allow optional description when stopping a timer
-    return api
+    return apiWithRetry
       .patch("/timers/stop", {
         userId: toObjectId(userId),
         projectId: toObjectId(projectId),
@@ -45,11 +45,11 @@ export class TimerService {
       .then((res) => res.data);
   }
   static async getTimersForUser(userId: string) {
-    const res = await api.get(`/timers/user/${userId}`);
+    const res = await apiWithRetry.get(`/timers/user/${userId}`);
     return res.data;
   }
   static async getTimersForProject(projectId: string) {
-    const res = await api.get(`/timers/project/${projectId}`);
+    const res = await apiWithRetry.get(`/timers/project/${projectId}`);
     return res.data;
   }
   static async logManualTime({
@@ -68,7 +68,7 @@ export class TimerService {
     description?: string;
   }) {
     // All IDs should be valid ObjectId strings, times should be ISO strings, and optional description
-    return api
+    return apiWithRetry
       .post("/timers/log", {
         user: toObjectId(user),
         project: toObjectId(project),
@@ -80,6 +80,6 @@ export class TimerService {
       .then((res) => res.data);
   }
   static async deleteTimeEntry(id: string) {
-    return api.delete(`/timers/${id}`).then((res) => res.data);
+    return apiWithRetry.delete(`/timers/${id}`).then((res) => res.data);
   }
 }

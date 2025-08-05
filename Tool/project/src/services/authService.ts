@@ -1,4 +1,4 @@
-import { api, handleApiError, setAuthToken } from '../lib/api';
+import { api, apiWithRetry, handleApiError, setAuthToken } from '../lib/api';
 import {
   ApiUser,
   LoginRequest,
@@ -26,13 +26,15 @@ export class AuthService {
 
   static async signIn(data: LoginRequest): Promise<AuthResponse> {
     try {
-      const response = await api.post<AuthResponse>('/users/login', data);
+      const response = await apiWithRetry.post<AuthResponse>('/users/login', data);
       if (response.data.token) {
         setAuthToken(response.data.token);
       }
       return response.data;
     } catch (error) {
-      throw handleApiError(error);
+      const errorInfo = handleApiError(error);
+      console.error('Login failed:', errorInfo);
+      throw errorInfo;
     }
   }
 
@@ -88,10 +90,12 @@ export class AuthService {
   // User profile endpoints
   static async getCurrentUser(): Promise<ApiResponse<{ user: ApiUser }>> {
     try {
-      const response = await api.get<ApiResponse<{ user: ApiUser }>>('/users/me');
+      const response = await apiWithRetry.get<ApiResponse<{ user: ApiUser }>>('/users/me');
       return response.data;
     } catch (error) {
-      throw handleApiError(error);
+      const errorInfo = handleApiError(error);
+      console.error('Get current user failed:', errorInfo);
+      throw errorInfo;
     }
   }
 
