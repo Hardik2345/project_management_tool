@@ -332,8 +332,8 @@ export function Projects() {
     const projectTimeEntries = state.allTimeEntries.filter(
       (te) => te.project_id === projectId
     );
-    const totalHours =
-      projectTimeEntries.reduce((sum, te) => sum + te.duration, 0) / 60;
+    console.log("Project Time Entries:", projectTimeEntries);
+    const totalHours =projectTimeEntries.duration
 
     return { completedTasks, totalTasks, totalHours };
   };
