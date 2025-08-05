@@ -117,6 +117,9 @@ export function TimeTracking() {
               projectId,
               startTime: new Date(parsed.startTime),
               description,
+              isPaused: parsed.isPaused || false,
+              pausedAt: parsed.pausedAt ? new Date(parsed.pausedAt) : undefined,
+              totalPausedTime: parsed.totalPausedTime || 0,
             });
           }
         }
@@ -135,6 +138,9 @@ export function TimeTracking() {
             projectId,
             startTime: new Date(running.startTime),
             description,
+            isPaused: running.isPaused || false,
+            pausedAt: running.pausedAt ? new Date(running.pausedAt) : undefined,
+            totalPausedTime: running.totalPausedTime || 0,
           });
           localStorage.setItem(
             "activeTimer",
@@ -143,6 +149,9 @@ export function TimeTracking() {
               projectId,
               startTime: running.startTime,
               description,
+              isPaused: running.isPaused || false,
+              pausedAt: running.pausedAt,
+              totalPausedTime: running.totalPausedTime || 0,
             })
           );
         }
@@ -189,13 +198,20 @@ export function TimeTracking() {
         let elapsedMs: number;
         
         if (isTimerPaused && activeTimer.pausedAt) {
-          // If paused, calculate time up to when it was paused
-          elapsedMs = activeTimer.pausedAt.getTime() - activeTimer.startTime.getTime();
+          // If paused, calculate time up to when it was paused, minus previous paused time
+          // totalPausedTime includes previous completed pause sessions, not the current one
+          const timeUpToPause = activeTimer.pausedAt.getTime() - activeTimer.startTime.getTime();
+          const previousPausedTime = activeTimer.totalPausedTime || 0;
+          elapsedMs = timeUpToPause - previousPausedTime;
         } else {
-          // If running, calculate current time minus total paused time
-          elapsedMs = Date.now() - activeTimer.startTime.getTime() - (activeTimer.totalPausedTime || 0);
+          // If running, calculate current time minus start time minus all completed paused time
+          const totalElapsed = Date.now() - activeTimer.startTime.getTime();
+          const completedPausedTime = activeTimer.totalPausedTime || 0;
+          elapsedMs = totalElapsed - completedPausedTime;
         }
         
+        // Ensure we don't show negative time
+        elapsedMs = Math.max(0, elapsedMs);
         setTimerDuration(Math.floor(elapsedMs / 1000));
       }, 1000);
     }
@@ -235,8 +251,14 @@ export function TimeTracking() {
         projectId: timerForm.projectId,
         startTime: new Date(res.data.timer.startTime),
         description: timerForm.description || "Timer session",
+        isPaused: false,
+        pausedAt: undefined,
+        totalPausedTime: 0,
       });
       setTimerDuration(0);
+      // Reset pause state for new timer
+      setIsTimerPaused(false);
+      setPausedTime(0);
       // Persist timer info in localStorage
       localStorage.setItem(
         "activeTimer",
@@ -245,6 +267,9 @@ export function TimeTracking() {
           projectId: timerForm.projectId,
           startTime: res.data.timer.startTime,
           description: timerForm.description || "Timer session",
+          isPaused: false,
+          pausedAt: null,
+          totalPausedTime: 0,
         })
       );
     } finally {
@@ -269,6 +294,9 @@ export function TimeTracking() {
       setBackendTimer(null);
       setActiveTimer(null);
       setTimerDuration(0);
+      // Reset pause state
+      setIsTimerPaused(false);
+      setPausedTime(0);
       localStorage.removeItem("activeTimer");
       // Optimistically add the stopped timer as a new time entry
       if (res && res.data && res.data.timer) {
