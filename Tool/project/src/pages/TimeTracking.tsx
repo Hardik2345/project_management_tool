@@ -13,10 +13,13 @@ import {
   TrendingUp,
   Edit3,
   Trash2,
+  Pause,
+  PlayCircle,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
 import { Modal } from "../components/ui/Modal";
+import { Toast } from "../components/ui/Toast";
 import {
   format,
   startOfWeek,
@@ -32,6 +35,9 @@ interface ActiveTimer {
   projectId: string;
   startTime: Date;
   description: string;
+  isPaused?: boolean;
+  pausedAt?: Date | null;
+  totalPausedTime?: number; // in milliseconds
 }
 
 export function TimeTracking() {
@@ -64,6 +70,26 @@ export function TimeTracking() {
 
   const [backendTimer, setBackendTimer] = useState<TimerRecord | null>(null);
   const [loadingTimer, setLoadingTimer] = useState(false);
+  const [isTimerPaused, setIsTimerPaused] = useState(false);
+  const [pausedTime, setPausedTime] = useState(0); // Total paused time in milliseconds
+  const [toast, setToast] = useState<{ id: string; title: string; type: 'success' | 'error' } | null>(null);
+
+  const showToast = (title: string, type: 'success' | 'error') => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setToast({ id, title, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  // Sync pause state with activeTimer
+  useEffect(() => {
+    if (activeTimer) {
+      setIsTimerPaused(activeTimer.isPaused || false);
+      setPausedTime(activeTimer.totalPausedTime || 0);
+    } else {
+      setIsTimerPaused(false);
+      setPausedTime(0);
+    }
+  }, [activeTimer]);
   // Helper to extract string ID from maybe-populated field
   const extractId = (val: any): string => {
     if (val === null || val === undefined) return "";
@@ -160,13 +186,21 @@ export function TimeTracking() {
     let interval: NodeJS.Timeout;
     if (activeTimer) {
       interval = setInterval(() => {
-        setTimerDuration(
-          Math.floor((Date.now() - activeTimer.startTime.getTime()) / 1000)
-        );
+        let elapsedMs: number;
+        
+        if (isTimerPaused && activeTimer.pausedAt) {
+          // If paused, calculate time up to when it was paused
+          elapsedMs = activeTimer.pausedAt.getTime() - activeTimer.startTime.getTime();
+        } else {
+          // If running, calculate current time minus total paused time
+          elapsedMs = Date.now() - activeTimer.startTime.getTime() - (activeTimer.totalPausedTime || 0);
+        }
+        
+        setTimerDuration(Math.floor(elapsedMs / 1000));
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [activeTimer]);
+  }, [activeTimer, isTimerPaused]);
 
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -268,6 +302,66 @@ export function TimeTracking() {
       reloadTimeEntries();
     } catch (error) {
       console.error("Error stopping timer:", error);
+    } finally {
+      setLoadingTimer(false);
+    }
+  };
+
+  const pauseTimer = async () => {
+    if (!activeTimer || !user || !user._id || isTimerPaused) return;
+    setLoadingTimer(true);
+    try {
+      const projectId = extractId(activeTimer.projectId);
+      const taskId = extractId(activeTimer.taskId);
+      const res = await TimerService.pauseTimer(user._id, projectId, taskId) as any;
+      
+      if (res && res.data && res.data.timer) {
+        const t = res.data.timer;
+        const updatedTimer = {
+          ...activeTimer,
+          isPaused: true,
+          pausedAt: new Date(t.pausedAt),
+          totalPausedTime: t.totalPausedTime || 0
+        };
+        setActiveTimer(updatedTimer);
+        setIsTimerPaused(true);
+        setBackendTimer(t);
+        localStorage.setItem("activeTimer", JSON.stringify(updatedTimer));
+        showToast('Timer paused!', 'success');
+      }
+    } catch (error: any) {
+      console.error("Error pausing timer:", error);
+      showToast('Failed to pause timer', 'error');
+    } finally {
+      setLoadingTimer(false);
+    }
+  };
+
+  const resumeTimer = async () => {
+    if (!activeTimer || !user || !user._id || !isTimerPaused) return;
+    setLoadingTimer(true);
+    try {
+      const projectId = extractId(activeTimer.projectId);
+      const taskId = extractId(activeTimer.taskId);
+      const res = await TimerService.resumeTimer(user._id, projectId, taskId) as any;
+      
+      if (res && res.data && res.data.timer) {
+        const t = res.data.timer;
+        const updatedTimer = {
+          ...activeTimer,
+          isPaused: false,
+          pausedAt: undefined,
+          totalPausedTime: t.totalPausedTime || 0
+        };
+        setActiveTimer(updatedTimer);
+        setIsTimerPaused(false);
+        setBackendTimer(t);
+        localStorage.setItem("activeTimer", JSON.stringify(updatedTimer));
+        showToast('Timer resumed!', 'success');
+      }
+    } catch (error: any) {
+      console.error("Error resuming timer:", error);
+      showToast('Failed to resume timer', 'error');
     } finally {
       setLoadingTimer(false);
     }
@@ -627,7 +721,21 @@ export function TimeTracking() {
                       <div className="text-3xl font-mono font-bold mb-3">
                         {formatDuration(timerDuration)}
                       </div>
+                      {isTimerPaused && (
+                        <div className="text-orange-200 text-sm mb-2 flex items-center justify-end">
+                          <Pause className="w-4 h-4 mr-1" />
+                          Paused
+                        </div>
+                      )}
                       <div className="flex items-center space-x-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={isTimerPaused ? resumeTimer : pauseTimer}
+                          icon={isTimerPaused ? PlayCircle : Pause}
+                        >
+                          {isTimerPaused ? "Resume" : "Pause"}
+                        </Button>
                         <Button
                           variant="secondary"
                           size="sm"
@@ -709,20 +817,47 @@ export function TimeTracking() {
                   />
                 </div>
 
-                <div className="flex justify-center pt-4">
-                  <Button
-                    onClick={activeTimer ? stopTimer : startTimer}
-                    disabled={
-                      loadingTimer ||
-                      (!activeTimer &&
-                        (!timerForm.taskId || !timerForm.projectId))
-                    }
-                    icon={activeTimer ? Square : Play}
-                    size="lg"
-                    className="px-8"
-                  >
-                    {activeTimer ? "Stop Timer" : "Start Timer"}
-                  </Button>
+                <div className="flex justify-center pt-4 gap-3">
+                  {activeTimer ? (
+                    <>
+                      {/* Pause/Resume Button */}
+                      <Button
+                        onClick={isTimerPaused ? resumeTimer : pauseTimer}
+                        disabled={loadingTimer}
+                        icon={isTimerPaused ? PlayCircle : Pause}
+                        variant="secondary"
+                        size="lg"
+                        className="px-6"
+                      >
+                        {isTimerPaused ? "Resume" : "Pause"}
+                      </Button>
+                      
+                      {/* Stop Button */}
+                      <Button
+                        onClick={stopTimer}
+                        disabled={loadingTimer}
+                        icon={Square}
+                        size="lg"
+                        className="px-6"
+                        variant="danger"
+                      >
+                        Stop Timer
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      onClick={startTimer}
+                      disabled={
+                        loadingTimer ||
+                        (!timerForm.taskId || !timerForm.projectId)
+                      }
+                      icon={Play}
+                      size="lg"
+                      className="px-8"
+                    >
+                      Start Timer
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
@@ -1234,6 +1369,16 @@ export function TimeTracking() {
           </form>
         )}
       </Modal>
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          id={toast.id}
+          title={toast.title}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

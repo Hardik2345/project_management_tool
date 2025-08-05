@@ -7,6 +7,10 @@ const router = express.Router();
 router.patch("/start", authController.protect, timerController.startTimer);
 // Stop timer (requires userId, projectId, taskId)
 router.patch("/stop", authController.protect, timerController.stopTimer);
+// Pause timer (requires userId, projectId, taskId)
+router.patch("/pause", authController.protect, timerController.pauseTimer);
+// Resume timer (requires userId, projectId, taskId)
+router.patch("/resume", authController.protect, timerController.resumeTimer);
 // Get all timers for a user
 router.get(
   "/user/:userId",

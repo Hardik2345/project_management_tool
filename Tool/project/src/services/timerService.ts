@@ -7,6 +7,11 @@ export interface Timer {
   task: string;
   startTime: string | null;
   endTime: string | null;
+  duration: number; // in minutes
+  isPaused: boolean;
+  pausedAt: string | null;
+  totalPausedTime: number; // in milliseconds
+  description?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -28,6 +33,7 @@ export class TimerService {
       })
       .then((res) => res.data);
   }
+  
   static async stopTimer(
     userId: string,
     projectId: string,
@@ -44,6 +50,27 @@ export class TimerService {
       })
       .then((res) => res.data);
   }
+  
+  static async pauseTimer(userId: string, projectId: string, taskId: string) {
+    return apiWithRetry
+      .patch("/timers/pause", {
+        userId: toObjectId(userId),
+        projectId: toObjectId(projectId),
+        taskId: toObjectId(taskId),
+      })
+      .then((res) => res.data);
+  }
+  
+  static async resumeTimer(userId: string, projectId: string, taskId: string) {
+    return apiWithRetry
+      .patch("/timers/resume", {
+        userId: toObjectId(userId),
+        projectId: toObjectId(projectId),
+        taskId: toObjectId(taskId),
+      })
+      .then((res) => res.data);
+  }
+  
   static async getTimersForUser(userId: string) {
     const res = await apiWithRetry.get(`/timers/user/${userId}`);
     return res.data;
