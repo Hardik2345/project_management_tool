@@ -659,17 +659,17 @@ export function TimeTracking() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Time Tracking</h1>
-          <p className="text-gray-600 mt-1">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="pr-2">
+          <h1 className="text-2xl font-bold text-gray-900 leading-tight">Time Tracking</h1>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">
             Track your time and manage logged entries
           </p>
         </div>
-        <div className="flex items-center space-x-3">
-          <div className="flex rounded-lg border border-gray-300">
+        <div className="flex items-center flex-wrap gap-3 w-full sm:w-auto">
+          <div className="flex rounded-lg border border-gray-300 overflow-x-auto max-w-full [-ms-overflow-style:none] [scrollbar-width:none] no-scrollbar">
             <button
               onClick={() => setDateFilter("all")}
               className={`px-3 py-2 text-sm font-medium transition-colors ${
@@ -701,34 +701,43 @@ export function TimeTracking() {
               This Week
             </button>
           </div>
-          <Button variant="outline" icon={Download} onClick={exportToCsv}>
-            Export
-          </Button>
-          <Button onClick={() => setShowLogModal(true)} icon={Plus}>
-            Log Manual Time
-          </Button>
+          <div className="flex items-center gap-2 ml-auto sm:ml-0">
+            <Button
+              variant="outline"
+              icon={Download}
+              onClick={exportToCsv}
+              className="w-full sm:w-auto"
+            >
+              Export
+            </Button>
+            <Button
+              onClick={() => setShowLogModal(true)}
+              icon={Plus}
+              className="w-full sm:w-auto"
+            >
+              Log Manual Time
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Top Section: Live Timer */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Timer */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center space-x-2 mb-6">
-              <Timer className="w-5 h-5 text-blue-600" />
-              <h3 className="text-lg font-semibold text-gray-900">
-                Live Timer
-              </h3>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+            <div className="flex items-center space-x-2 mb-4 sm:mb-6">
+              <Timer className="w-5 h-5 text-blue-600 shrink-0" />
+              <h3 className="text-lg font-semibold text-gray-900">Live Timer</h3>
             </div>
 
             {activeTimer ? (
               /* Active Timer Display */
               <div className="space-y-6">
-                <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg p-6 text-white">
-                  <div className="flex items-center justify-between">
+                <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg p-4 sm:p-6 text-white">
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6 justify-between">
                     <div className="flex-1">
-                      <h4 className="text-lg font-semibold mb-1">
+                      <h4 className="text-lg font-semibold mb-1 leading-snug">
                         Timer Running
                       </h4>
                       <p className="text-blue-100 text-sm mb-1">
@@ -745,8 +754,8 @@ export function TimeTracking() {
                         }
                       </p>
                     </div>
-                    <div className="text-right">
-                      <div className="text-3xl font-mono font-bold mb-3">
+                    <div className="text-right sm:min-w-[170px]">
+                      <div className="text-4xl sm:text-3xl font-mono font-bold mb-3 tabular-nums">
                         {formatDuration(timerDuration)}
                       </div>
                       {isTimerPaused && (
@@ -755,12 +764,13 @@ export function TimeTracking() {
                           Paused
                         </div>
                       )}
-                      <div className="flex items-center space-x-2">
+                      <div className="flex flex-wrap justify-end gap-2">
                         <Button
                           variant="secondary"
                           size="sm"
                           onClick={isTimerPaused ? resumeTimer : pauseTimer}
                           icon={isTimerPaused ? PlayCircle : Pause}
+                          className="min-w-[84px]"
                         >
                           {isTimerPaused ? "Resume" : "Pause"}
                         </Button>
@@ -769,6 +779,7 @@ export function TimeTracking() {
                           size="sm"
                           onClick={stopTimer}
                           icon={Square}
+                          className="min-w-[84px]"
                         >
                           Stop
                         </Button>
@@ -780,7 +791,7 @@ export function TimeTracking() {
             ) : (
               /* Timer Setup Form */
               <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Project
@@ -845,7 +856,7 @@ export function TimeTracking() {
                   />
                 </div>
 
-                <div className="flex justify-center pt-4 gap-3">
+                <div className="flex justify-center pt-4 gap-3 flex-col sm:flex-row">
                   {activeTimer ? (
                     <>
                       {/* Pause/Resume Button */}
@@ -855,7 +866,7 @@ export function TimeTracking() {
                         icon={isTimerPaused ? PlayCircle : Pause}
                         variant="secondary"
                         size="lg"
-                        className="px-6"
+                        className="px-6 w-full sm:w-auto"
                       >
                         {isTimerPaused ? "Resume" : "Pause"}
                       </Button>
@@ -866,7 +877,7 @@ export function TimeTracking() {
                         disabled={loadingTimer}
                         icon={Square}
                         size="lg"
-                        className="px-6"
+                        className="px-6 w-full sm:w-auto"
                         variant="danger"
                       >
                         Stop Timer
@@ -881,7 +892,7 @@ export function TimeTracking() {
                       }
                       icon={Play}
                       size="lg"
-                      className="px-8"
+                      className="px-8 w-full sm:w-auto"
                     >
                       Start Timer
                     </Button>
@@ -895,7 +906,7 @@ export function TimeTracking() {
         {/* Summary Stats */}
         <div className="space-y-6">
           {/* Time Summary */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
             <div className="flex items-center space-x-2 mb-4">
               <BarChart3 className="w-5 h-5 text-purple-600" />
               <h3 className="text-lg font-semibold text-gray-900">Summary</h3>
@@ -963,11 +974,9 @@ export function TimeTracking() {
 
       {/* Bottom Section: Logged Time Table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Logged Time Entries
-            </h3>
+        <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Logged Time Entries</h3>
           </div>
 
           {/* Filters */}
@@ -983,7 +992,7 @@ export function TimeTracking() {
               />
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 sm:w-auto">
               <select
                 value={projectFilter}
                 onChange={(e) => setProjectFilter(e.target.value)}
@@ -1017,8 +1026,8 @@ export function TimeTracking() {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
+  {/* Table (desktop) */}
+  <div className="hidden md:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -1137,14 +1146,85 @@ export function TimeTracking() {
           </table>
 
           {filteredTimeEntries.length === 0 && (
-            <div className="text-center py-12">
+            <div className="hidden md:block text-center py-12">
               <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-sm font-medium text-gray-900 mb-2">
-                No time entries found
-              </h3>
+              <h3 className="text-sm font-medium text-gray-900 mb-2">No time entries found</h3>
               <p className="text-sm text-gray-500">
                 {searchTerm || projectFilter !== "all"
                   ? "Try adjusting your filters or search terms."
+                  : "Start tracking time to see your entries here."}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Card List */}
+        <div className="md:hidden px-4 pb-4">
+          <ul className="divide-y divide-gray-200">
+            {filteredTimeEntries.map((entry) => {
+              const task = state.tasks.find((t) => t.id === extractId(entry.task_id));
+              const project = state.projects.find((p) => p.id === extractId(entry.project_id));
+              return (
+                <li
+                  key={entry.id}
+                  className="py-4 cursor-pointer" 
+                  onClick={() => { setSelectedEntry(entry); setShowEditModal(true); }}
+                >
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center text-xs text-gray-500 gap-2 mb-1">
+                        <span>{format(new Date(entry.date), "MMM d")}</span>
+                        <span className="inline-block w-1 h-1 rounded-full bg-gray-300" />
+                        <span>{format(new Date(entry.created_at), "h:mm a")}</span>
+                      </div>
+                      <div className="text-sm font-medium text-gray-900 truncate">
+                        {project?.name || "Unknown Project"}
+                      </div>
+                      <div className="text-xs text-gray-600 truncate">
+                        {task?.title || "Unknown Task"}
+                      </div>
+                      {entry.description && (
+                        <div className="text-xs text-gray-500 mt-1 truncate max-w-full">
+                          {entry.description}
+                        </div>
+                      )}
+                      <div className="mt-2 flex items-center gap-2">
+                        <span className="text-xs font-semibold text-gray-800 bg-gray-100 px-2 py-0.5 rounded">
+                          {formatHours(entry.duration)}
+                        </span>
+                        <span className="text-[10px] text-gray-500">
+                          {Math.round(entry.duration)} min
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setSelectedEntry(entry); setShowEditModal(true); }}
+                        className="text-blue-600 hover:text-blue-800 p-2 -m-2"
+                        aria-label="Edit entry"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDeleteEntry(entry.id); }}
+                        className="text-red-600 hover:text-red-800 p-2 -m-2"
+                        aria-label="Delete entry"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          {filteredTimeEntries.length === 0 && (
+            <div className="text-center py-12">
+              <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-sm font-medium text-gray-900 mb-2">No time entries found</h3>
+              <p className="text-sm text-gray-500">
+                {searchTerm || projectFilter !== "all"
+                  ? "Adjust filters or search terms."
                   : "Start tracking time to see your entries here."}
               </p>
             </div>
