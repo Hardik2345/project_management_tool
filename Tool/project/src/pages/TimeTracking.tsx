@@ -661,17 +661,17 @@ export function TimeTracking() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="pr-2">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="pr-0 lg:pr-2">
           <h1 className="text-2xl font-bold text-gray-900 leading-tight">Time Tracking</h1>
           <p className="text-gray-600 mt-1 text-sm sm:text-base">
             Track your time and manage logged entries
           </p>
         </div>
         {/* Controls Container */}
-        <div className="flex flex-col w-full sm:w-auto gap-3">
+        <div className="flex flex-col w-full lg:w-auto gap-3 lg:flex-row lg:items-center lg:gap-4">
           {/* Date Filter Segmented Control */}
-          <div className="flex rounded-lg border border-gray-300 overflow-hidden w-full sm:w-auto">
+          <div className="flex rounded-lg border border-gray-300 overflow-hidden w-full sm:w-auto lg:shrink-0">
             <button
               onClick={() => setDateFilter("all")}
               className={`flex-1 sm:flex-none px-3 py-2 text-sm font-medium transition-colors text-center ${
@@ -703,20 +703,20 @@ export function TimeTracking() {
               This Week
             </button>
           </div>
-          {/* Action Buttons */}
-          <div className="flex flex-col xs:flex-row sm:flex-row gap-2 w-full sm:w-auto">
+      {/* Action Buttons */}
+      <div className="flex flex-col xs:flex-row sm:flex-row lg:flex-row gap-2 w-full lg:w-auto lg:justify-end">
             <Button
               variant="outline"
               icon={Download}
               onClick={exportToCsv}
-              className="w-full sm:w-auto justify-center"
+        className="w-full sm:w-auto lg:w-auto justify-center lg:justify-start lg:inline-flex"
             >
               Export
             </Button>
             <Button
               onClick={() => setShowLogModal(true)}
               icon={Plus}
-              className="w-full sm:w-auto justify-center"
+        className="w-full sm:w-auto lg:w-auto justify-center lg:justify-start lg:inline-flex"
             >
               Log Manual Time
             </Button>
@@ -977,13 +977,13 @@ export function TimeTracking() {
 
       {/* Bottom Section: Logged Time Table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+        <div className="px-4 sm:px-6 pt-4 pb-2 border-b border-gray-200">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-2">
             <h3 className="text-lg font-semibold text-gray-900">Logged Time Entries</h3>
           </div>
 
           {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
@@ -995,7 +995,7 @@ export function TimeTracking() {
               />
             </div>
 
-            <div className="flex gap-2 sm:w-auto">
+            <div className="flex gap-2 sm:w-auto md:ml-2">
               <select
                 value={projectFilter}
                 onChange={(e) => setProjectFilter(e.target.value)}
@@ -1163,7 +1163,7 @@ export function TimeTracking() {
 
         {/* Mobile Card List */}
         <div className="md:hidden px-4 pb-4">
-          <ul className="space-y-4">
+          <ul className="space-y-4 mt-4">
             {filteredTimeEntries.map((entry) => {
               const task = state.tasks.find((t) => t.id === extractId(entry.task_id));
               const project = state.projects.find((p) => p.id === extractId(entry.project_id));
