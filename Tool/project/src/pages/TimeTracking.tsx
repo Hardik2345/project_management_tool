@@ -975,8 +975,9 @@ export function TimeTracking() {
         </div>
       </div>
 
-      {/* Bottom Section: Logged Time Table */}
+      {/* Bottom Section: Logged Time Entries (Scrollable) */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        {/* Header + Filters (static) */}
         <div className="px-4 sm:px-6 pt-4 pb-2 border-b border-gray-200">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-2">
             <h3 className="text-lg font-semibold text-gray-900">Logged Time Entries</h3>
@@ -1027,8 +1028,15 @@ export function TimeTracking() {
           </div>
         </div>
 
-  {/* Table (desktop) */}
-  <div className="hidden md:block overflow-x-auto">
+        {/* Scrollable list wrapper */}
+        <div
+          className="entries-scroll focus:outline-none max-h-[60vh] md:max-h-[70vh] overflow-y-auto overscroll-contain"
+          role="region"
+          aria-label="Logged time entries list"
+          tabIndex={0}
+        >
+        {/* Table (desktop) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -1157,10 +1165,10 @@ export function TimeTracking() {
               </p>
             </div>
           )}
-        </div>
+  </div>
 
-        {/* Mobile Card List */}
-        <div className="md:hidden px-4 pb-4">
+  {/* Mobile Card List */}
+  <div className="md:hidden px-4 pb-4">
           <ul className="space-y-4 mt-4">
             {filteredTimeEntries.map((entry) => {
               const task = state.tasks.find((t) => t.id === extractId(entry.task_id));
@@ -1231,6 +1239,7 @@ export function TimeTracking() {
             </div>
           )}
         </div>
+        </div>{/* end scroll wrapper */}
       </div>
 
       {/* Log Manual Time Modal */}
