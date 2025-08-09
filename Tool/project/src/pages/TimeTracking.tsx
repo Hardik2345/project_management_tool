@@ -661,18 +661,20 @@ export function TimeTracking() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="pr-2">
           <h1 className="text-2xl font-bold text-gray-900 leading-tight">Time Tracking</h1>
           <p className="text-gray-600 mt-1 text-sm sm:text-base">
             Track your time and manage logged entries
           </p>
         </div>
-        <div className="flex items-center flex-wrap gap-3 w-full sm:w-auto">
-          <div className="flex rounded-lg border border-gray-300 overflow-x-auto max-w-full [-ms-overflow-style:none] [scrollbar-width:none] no-scrollbar">
+        {/* Controls Container */}
+        <div className="flex flex-col w-full sm:w-auto gap-3">
+          {/* Date Filter Segmented Control */}
+          <div className="flex rounded-lg border border-gray-300 overflow-hidden w-full sm:w-auto">
             <button
               onClick={() => setDateFilter("all")}
-              className={`px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex-1 sm:flex-none px-3 py-2 text-sm font-medium transition-colors text-center ${
                 dateFilter === "all"
                   ? "bg-blue-50 text-blue-700 border-blue-200"
                   : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
@@ -682,7 +684,7 @@ export function TimeTracking() {
             </button>
             <button
               onClick={() => setDateFilter("today")}
-              className={`px-3 py-2 text-sm font-medium transition-colors border-l border-gray-300 ${
+              className={`flex-1 sm:flex-none px-3 py-2 text-sm font-medium transition-colors border-l border-gray-300 text-center ${
                 dateFilter === "today"
                   ? "bg-blue-50 text-blue-700 border-blue-200"
                   : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
@@ -692,7 +694,7 @@ export function TimeTracking() {
             </button>
             <button
               onClick={() => setDateFilter("week")}
-              className={`px-3 py-2 text-sm font-medium transition-colors border-l border-gray-300 ${
+              className={`flex-1 sm:flex-none px-3 py-2 text-sm font-medium transition-colors border-l border-gray-300 text-center ${
                 dateFilter === "week"
                   ? "bg-blue-50 text-blue-700 border-blue-200"
                   : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
@@ -701,19 +703,20 @@ export function TimeTracking() {
               This Week
             </button>
           </div>
-          <div className="flex items-center gap-2 ml-auto sm:ml-0">
+          {/* Action Buttons */}
+          <div className="flex flex-col xs:flex-row sm:flex-row gap-2 w-full sm:w-auto">
             <Button
               variant="outline"
               icon={Download}
               onClick={exportToCsv}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto justify-center"
             >
               Export
             </Button>
             <Button
               onClick={() => setShowLogModal(true)}
               icon={Plus}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto justify-center"
             >
               Log Manual Time
             </Button>
@@ -1160,36 +1163,36 @@ export function TimeTracking() {
 
         {/* Mobile Card List */}
         <div className="md:hidden px-4 pb-4">
-          <ul className="divide-y divide-gray-200">
+          <ul className="space-y-4">
             {filteredTimeEntries.map((entry) => {
               const task = state.tasks.find((t) => t.id === extractId(entry.task_id));
               const project = state.projects.find((p) => p.id === extractId(entry.project_id));
               return (
                 <li
                   key={entry.id}
-                  className="py-4 cursor-pointer" 
+                  className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm cursor-pointer active:ring-2 active:ring-blue-100 transition"
                   onClick={() => { setSelectedEntry(entry); setShowEditModal(true); }}
                 >
-                  <div className="flex justify-between items-start gap-4">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center text-xs text-gray-500 gap-2 mb-1">
+                      <div className="flex items-center text-[11px] text-gray-500 gap-2 mb-1">
                         <span>{format(new Date(entry.date), "MMM d")}</span>
                         <span className="inline-block w-1 h-1 rounded-full bg-gray-300" />
                         <span>{format(new Date(entry.created_at), "h:mm a")}</span>
                       </div>
-                      <div className="text-sm font-medium text-gray-900 truncate">
+                      <div className="text-sm font-semibold text-gray-900 truncate">
                         {project?.name || "Unknown Project"}
                       </div>
                       <div className="text-xs text-gray-600 truncate">
                         {task?.title || "Unknown Task"}
                       </div>
                       {entry.description && (
-                        <div className="text-xs text-gray-500 mt-1 truncate max-w-full">
+                        <div className="text-xs text-gray-500 mt-2 line-clamp-2">
                           {entry.description}
                         </div>
                       )}
-                      <div className="mt-2 flex items-center gap-2">
-                        <span className="text-xs font-semibold text-gray-800 bg-gray-100 px-2 py-0.5 rounded">
+                      <div className="mt-3 flex items-center gap-2">
+                        <span className="text-[11px] font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
                           {formatHours(entry.duration)}
                         </span>
                         <span className="text-[10px] text-gray-500">
@@ -1197,17 +1200,17 @@ export function TimeTracking() {
                         </span>
                       </div>
                     </div>
-                    <div className="flex flex-col items-end gap-2">
+                    <div className="flex flex-col items-end gap-3 pl-1">
                       <button
                         onClick={(e) => { e.stopPropagation(); setSelectedEntry(entry); setShowEditModal(true); }}
-                        className="text-blue-600 hover:text-blue-800 p-2 -m-2"
+                        className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-50"
                         aria-label="Edit entry"
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); handleDeleteEntry(entry.id); }}
-                        className="text-red-600 hover:text-red-800 p-2 -m-2"
+                        className="text-red-600 hover:text-red-700 p-1 rounded hover:bg-red-50"
                         aria-label="Delete entry"
                       >
                         <Trash2 className="w-4 h-4" />
