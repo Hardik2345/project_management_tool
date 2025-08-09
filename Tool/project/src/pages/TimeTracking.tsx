@@ -983,8 +983,8 @@ export function TimeTracking() {
           </div>
 
           {/* Filters */}
-          <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
-            <div className="relative flex-1">
+          <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4 w-full">
+            <div className="relative flex-1 min-w-0 w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
@@ -994,12 +994,11 @@ export function TimeTracking() {
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-
-            <div className="flex gap-2 sm:w-auto md:ml-2">
+            <div className="flex flex-col sm:flex-col md:flex-row gap-3 md:gap-2 w-full md:w-auto md:ml-2">
               <select
                 value={projectFilter}
                 onChange={(e) => setProjectFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full md:w-auto md:min-w-[11rem] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-0"
               >
                 <option value="all">All Projects</option>
                 {state.projects.map((project) => (
@@ -1008,7 +1007,6 @@ export function TimeTracking() {
                   </option>
                 ))}
               </select>
-
               <select
                 value={`${sortBy}-${sortOrder}`}
                 onChange={(e) => {
@@ -1016,7 +1014,7 @@ export function TimeTracking() {
                   setSortBy(field);
                   setSortOrder(order as "asc" | "desc");
                 }}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full md:w-auto md:min-w-[10rem] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-0"
               >
                 <option value="date-desc">Date (Newest)</option>
                 <option value="date-asc">Date (Oldest)</option>
