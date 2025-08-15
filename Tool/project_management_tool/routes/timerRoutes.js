@@ -25,6 +25,9 @@ router.get(
 );
 // Log manual time (create timer with all fields)
 router.post("/log", authController.protect, timerController.logManualTime);
+
+// Update a time entry by ID
+router.patch("/:id", authController.protect, timerController.updateTimeEntry);
 // Delete a time entry by ID
 router.delete("/:id", authController.protect, timerController.deleteTimeEntry);
 

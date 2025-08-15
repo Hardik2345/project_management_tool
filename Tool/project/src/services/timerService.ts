@@ -106,6 +106,10 @@ export class TimerService {
       })
       .then((res) => res.data);
   }
+  static async updateTimeEntry(id: string, data: { duration?: number; date?: string; description?: string }) {
+    // PATCH /timers/:id with updated fields
+    return apiWithRetry.patch(`/timers/${id}`, data).then((res) => res.data);
+  }
   static async deleteTimeEntry(id: string) {
     return apiWithRetry.delete(`/timers/${id}`).then((res) => res.data);
   }

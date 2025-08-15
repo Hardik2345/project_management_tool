@@ -185,5 +185,10 @@ exports.resumeTimer = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: "success", data: { timer } });
 });
 
+
 // Delete a time entry
 exports.deleteTimeEntry = handlerFactory.deleteOne(Timer);
+
+// Update a time entry
+const { updateTimeEntry } = require("./updateTimeEntryController");
+exports.updateTimeEntry = updateTimeEntry;

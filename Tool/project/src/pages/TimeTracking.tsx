@@ -458,22 +458,33 @@ export function TimeTracking() {
     if (!selectedEntry) return;
 
     try {
-      const updatedEntry = {
-        ...selectedEntry,
+      // Call backend to update entry
+      const res: any = await TimerService.updateTimeEntry(selectedEntry.id, {
         duration: selectedEntry.duration,
         description: selectedEntry.description,
-      };
-
+        date: selectedEntry.date,
+      });
+      const updatedTimer = res.data.timer;
+      // Update local state
       dispatch({
         type: "SET_TIME_ENTRIES",
         payload: state.timeEntries.map((te) =>
-          te.id === selectedEntry.id ? updatedEntry : te
+          te.id === selectedEntry.id ? { ...te, ...updatedTimer } : te
         ),
       });
-
       setShowEditModal(false);
       setSelectedEntry(null);
+      setToast({
+        id: Math.random().toString(36).substr(2, 9),
+        title: "Time entry updated!",
+        type: "success",
+      });
     } catch (error) {
+      setToast({
+        id: Math.random().toString(36).substr(2, 9),
+        title: "Failed to update time entry.",
+        type: "error",
+      });
       console.error("Error updating time entry:", error);
     }
   };
